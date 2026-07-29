@@ -1,4 +1,4 @@
-# Yugen — read the depth
+# Yugen 
 
 > A live, no-account crypto dashboard for the 14 coins that actually move the market.
 
