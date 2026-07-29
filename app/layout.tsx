@@ -23,7 +23,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yugen — read the depth",
+  title: "Yugen",
   description:
     "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts, no made-up numbers.",
   metadataBase: new URL("https://yugen-crypto.vercel.app"),
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   openGraph: {
-    title: "Yugen — read the depth",
+    title: "Yugen" ,
     description:
       "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts.",
     type: "website",
