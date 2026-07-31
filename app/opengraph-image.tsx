@@ -144,7 +144,7 @@ export default async function OG() {
             <div style={{ display: "flex", fontFamily: "Symbols" }}>Solana ◎</div>
             <div style={{ display: "flex" }}>+ 11 more</div>
           </div>
-          <div style={{ color: "#FF6A1A", display: "flex" }}>yugen-crypto.vercel.app →</div>
+          <div style={{ color: "#FF6A1A", display: "flex" }}>yugen-xi.vercel.app →</div>
         </div>
       </div>
     ),

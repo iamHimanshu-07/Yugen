@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   title: "Yugen",
   description:
     "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts, no made-up numbers.",
-  metadataBase: new URL("https://yugen-crypto.vercel.app"),
+  metadataBase: new URL("https://yugen-xi.vercel.app"),
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description:
       "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts.",
     type: "website",
-    url: "https://yugen-crypto.vercel.app",
+    url: "https://yugen-xi.vercel.app",
     siteName: "Yugen",
   },
   twitter: {
