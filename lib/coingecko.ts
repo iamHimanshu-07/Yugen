@@ -10,6 +10,7 @@
  *   GET /coins/markets?vs_currency=usd
  *   GET /coins/{id}?localization=false&tickers=false&community_data=true
  *   GET /coins/{id}/market_chart?vs_currency=usd&days={1,7,30,90,365}
+ *   GET /global
  */
 
 import { listCoins, type Coin } from "./coins";
@@ -124,6 +125,22 @@ export interface MarketChart {
   total_volumes: [number, number][];
 }
 
+// Global data shape
+export interface GlobalData {
+  data: {
+    active_cryptocurrencies: number;
+    upcoming_icos: number;
+    ongoing_icos: number;
+    ended_icos: number;
+    markets: number;
+    total_market_cap: { usd: number; btc: number; eth: number };
+    total_volume: { usd: number; btc: number; eth: number };
+    market_cap_percentage: { usd: number; btc: number; eth: number };
+    // The market_cap_percentage object contains the dominance of each coin.
+    // For Bitcoin dominance, we need market_cap_percentage.btc
+  };
+}
+
 // ---------- public API ------------------------------------------------------
 
 /**
@@ -145,6 +162,14 @@ export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow
 export async function fetchCoinDetail(id: string): Promise<CoinDetail> {
   const url = `${BASE}/coins/${id}?localization=false&tickers=false&community_data=true&developer_data=true&sparkline=true`;
   return cachedFetch<CoinDetail>(url, 60);
+}
+
+/**
+ * Fetch global cryptocurrency data (market cap, volumes, dominance).
+ */
+export async function fetchGlobal(): Promise<GlobalData> {
+  const url = `${BASE}/global`;
+  return cachedFetch<GlobalData>(url, 60);
 }
 
 /**
