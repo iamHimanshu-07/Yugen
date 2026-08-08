@@ -32,8 +32,8 @@ export interface ChainTvl {
 }
 
 export interface HistoricalChainTvl {
-  date: number;      // unix timestamp
-  totalLiquidityUSD: number;
+  date: number;      // unix timestamp (seconds)
+  tvl: number;       // USD value at that snapshot — actual field name from DefiLlama
 }
 
 export interface Protocol {
@@ -133,14 +133,21 @@ export async function fetchChainsTvl(): Promise<ChainTvl[]> {
 /**
  * Fetch historical TVL for a specific chain.
  * Returns daily snapshots.
+ *
+ * @param chain   DefiLlama chain name (e.g. "Ethereum")
+ * @param days    Optional window to trim to (e.g. 30 → only last 30 days).
+ *                DefiLlama returns 3000+ rows per chain; the chart only needs 30.
+ *                When provided, the cached full history is sliced on read.
  */
-export async function fetchHistoricalChainTvl(chain: string): Promise<HistoricalChainTvl[]> {
+export async function fetchHistoricalChainTvl(chain: string, days?: number): Promise<HistoricalChainTvl[]> {
   const cacheKey = `historical:${chain.toLowerCase()}`;
   const url = `${BASE}/v2/historicalChainTvl/${encodeURIComponent(chain)}`;
 
   // Use dedicated historical TVL cache
   const cached = Caches.defillamaHistoricalTvl.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    return days ? trimToDays(cached, days) : cached;
+  }
 
   const data = await withRateLimit("defillama", async () => {
     const res = await fetch(url, {
@@ -154,7 +161,22 @@ export async function fetchHistoricalChainTvl(chain: string): Promise<Historical
   });
 
   Caches.defillamaHistoricalTvl.set(cacheKey, data);
-  return data;
+  return days ? trimToDays(data, days) : data;
+}
+
+/** Return only the rows within the last `days` days of the snapshot series. */
+function trimToDays(rows: HistoricalChainTvl[], days: number): HistoricalChainTvl[] {
+  if (rows.length === 0) return rows;
+  const cutoff = Date.now() / 1000 - days * 86400;
+  // Rows are daily, oldest first; binary search for the first row >= cutoff.
+  let lo = 0;
+  let hi = rows.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (rows[mid].date < cutoff) lo = mid + 1;
+    else hi = mid;
+  }
+  return rows.slice(lo);
 }
 
 /**
@@ -165,8 +187,9 @@ export async function fetchProtocols(limit = 50): Promise<Protocol[]> {
   const url = `${BASE}/protocols`;
   const data = await cachedProtocolsFetch(url, PROTOCOLS_KEY, Caches.defillamaProtocols);
   return data
-    .filter((p) => p.tvl > 0)
-    .sort((a, b) => b.tvl - a.tvl)
+    // ~14% of /protocols rows have null TVL (CEXs, chains, etc.) — guard before compare.
+    .filter((p) => p.tvl != null && p.tvl > 0)
+    .sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0))
     .slice(0, limit);
 }
 
@@ -190,14 +213,16 @@ export async function fetchTopChains(n = 10): Promise<ChainTvl[]> {
  * Get TVL change for a chain over a period.
  */
 export async function getChainTvlChange(chain: string, days = 7): Promise<{ current: number; change: number; changePct: number } | null> {
-  const historical = await fetchHistoricalChainTvl(chain);
+  const historical = await fetchHistoricalChainTvl(chain, days + 1);
   if (historical.length === 0) return null;
 
-  const current = historical[historical.length - 1].totalLiquidityUSD;
+  const current = historical[historical.length - 1].tvl;
   const cutoff = Date.now() / 1000 - days * 86400;
-  const past = historical.find((h) => h.date >= cutoff) ?? historical[0];
-  const change = current - past.totalLiquidityUSD;
-  const changePct = past.totalLiquidityUSD > 0 ? (change / past.totalLiquidityUSD) * 100 : 0;
+  // Find the snapshot just before cutoff (not after) so a same-day update
+  // doesn't make the comparison window zero-length.
+  const past = [...historical].reverse().find((h) => h.date <= cutoff) ?? historical[0];
+  const change = current - past.tvl;
+  const changePct = past.tvl > 0 ? (change / past.tvl) * 100 : 0;
 
   return { current, change, changePct };
 }

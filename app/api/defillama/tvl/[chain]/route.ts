@@ -21,14 +21,11 @@ export async function GET(
   const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") ?? 30)));
 
   try {
-    const data = await fetchHistoricalChainTvl(chain);
-
-    // Filter to requested days
-    const cutoff = Date.now() - days * 86_400_000;
-    const filtered = data.filter((d) => d.date * 1000 >= cutoff);
+    // fetchHistoricalChainTvl trims server-side using its binary search.
+    const data = await fetchHistoricalChainTvl(chain, days);
 
     // Return in format compatible with ECharts: [timestamp_ms, tvl]
-    const points = filtered.map((d) => [d.date * 1000, d.totalLiquidityUSD]);
+    const points = data.map((d) => [d.date * 1000, d.tvl]);
 
     return Response.json({ chain, points, days });
   } catch (e) {

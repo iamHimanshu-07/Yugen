@@ -63,13 +63,16 @@ export default async function OnChainPage() {
 
   // Fetch historical TVL for top 6 chains (for chart). Each chain's fetch is
   // independently try/caught, so one rate-limit doesn't break the whole chart.
+  // Trim server-side to 31 days — DefiLlama returns 3000+ rows per chain
+  // but the chart only needs the last 30.
+  const HISTORY_DAYS = 31;
   const topChains = chains.slice(0, 6);
   const histResults = await Promise.all(
     topChains.map(async (c) => {
       try {
-        const data = await fetchHistoricalChainTvl(c.name);
+        const data = await fetchHistoricalChainTvl(c.name, HISTORY_DAYS);
         const points: [number, number][] = data.map(
-          (d) => [d.date * 1000, d.totalLiquidityUSD] as [number, number],
+          (d) => [d.date * 1000, d.tvl] as [number, number],
         );
         return { chain: c.name, points };
       } catch {
@@ -78,6 +81,11 @@ export default async function OnChainPage() {
     }),
   );
   historicalData = Object.fromEntries(histResults.map((r) => [r.chain, r.points]));
+
+  // Compute 24h / 7d TVL change per top-12 chain from history. DefiLlama's
+  // /v2/chains endpoint doesn't expose change_1d/change_7d directly, so we
+  // derive them here. For chains outside the top 12 we show "—" on the card.
+  const chainsWithChange = await attachTvlChanges(chains);
 
   const totalTvl = chains.reduce((sum, c) => sum + c.tvl, 0);
   const totalHistoryPoints = Object.values(historicalData).reduce(
@@ -152,7 +160,7 @@ export default async function OnChainPage() {
           <section style={{ marginBottom: 48 }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 16 }}>Chain TVL Ranking</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-              {chains.map((chain, idx) => (
+              {chainsWithChange.map((chain, idx) => (
                 <ChainTvlCard key={chain.name} chain={chain} rank={idx + 1} />
               ))}
             </div>
@@ -190,9 +198,50 @@ export default async function OnChainPage() {
 
 /* ============================== Chain TVL Card ============================== */
 
-function ChainTvlCard({ chain, rank }: { chain: ChainTvl; rank: number }) {
-  const change1d = chain.change_1d ?? 0;
-  const change7d = chain.change_7d ?? 0;
+// Chain TVL with computed 24h/7d changes. DefiLlama's /v2/chains doesn't
+// expose these on the chain list; we derive them from historical TVL.
+type ChainTvlWithChange = ChainTvl & {
+  computedChange1d: number | null;
+  computedChange7d: number | null;
+};
+
+/**
+ * For each chain, fetch the last 8 days of history once and compute both
+ * 24h / 7d percentage change from it. One fetch per chain instead of two.
+ * Failures degrade to null (rendered as "—") — never throw, never block.
+ */
+async function attachTvlChanges(chains: ChainTvl[]): Promise<ChainTvlWithChange[]> {
+  return Promise.all(
+    chains.map(async (c) => {
+      try {
+        // 8 days covers both a 1d and a 7d comparison.
+        const history = await fetchHistoricalChainTvl(c.name, 8);
+        const computedChange1d = pctChangeAt(history, 1);
+        const computedChange7d = pctChangeAt(history, 7);
+        return { ...c, computedChange1d, computedChange7d };
+      } catch {
+        return { ...c, computedChange1d: null, computedChange7d: null };
+      }
+    }),
+  );
+}
+
+function pctChangeAt(history: { date: number; tvl: number }[], days: number): number | null {
+  if (history.length < 2) return null;
+  const current = history[history.length - 1].tvl;
+  const cutoff = Date.now() / 1000 - days * 86400;
+  // Pick the snapshot closest to (now - days) without going past it.
+  // Why not `find(h => h.date >= cutoff)`? Because for a 1d window the most
+  // recent row may itself be within the last 24h (e.g. published 3h ago) —
+  // it would become both "current" and "past", making the change 0.
+  const past = [...history].reverse().find((h) => h.date <= cutoff) ?? history[0];
+  if (!past.tvl || past.tvl <= 0) return null;
+  return ((current - past.tvl) / past.tvl) * 100;
+}
+
+function ChainTvlCard({ chain, rank }: { chain: ChainTvlWithChange; rank: number }) {
+  const change1d = chain.computedChange1d;
+  const change7d = chain.computedChange7d;
 
   return (
     <div className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -213,11 +262,11 @@ function ChainTvlCard({ chain, rank }: { chain: ChainTvl; rank: number }) {
         </div>
       </div>
       <div style={{ display: "flex", gap: 16, fontSize: 12, marginTop: 4 }}>
-        <span className={`mono ${pctColor(change1d)}`} style={{ fontWeight: 700 }}>
-          {fmtPct(change1d)} 24h
+        <span className={`mono ${change1d != null ? pctColor(change1d) : ""}`} style={{ fontWeight: 700, color: change1d == null ? "var(--dim)" : undefined }}>
+          {change1d != null ? `${fmtPct(change1d)} 24h` : "— 24h"}
         </span>
-        <span className={`mono ${pctColor(change7d)}`} style={{ fontWeight: 700 }}>
-          {fmtPct(change7d)} 7d
+        <span className={`mono ${change7d != null ? pctColor(change7d) : ""}`} style={{ fontWeight: 700, color: change7d == null ? "var(--dim)" : undefined }}>
+          {change7d != null ? `${fmtPct(change7d)} 7d` : "— 7d"}
         </span>
       </div>
     </div>
