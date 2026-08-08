@@ -144,7 +144,6 @@ export default async function OnChainPage() {
             <TVLChart
               chains={topChains.map((c) => c.name)}
               data={historicalData}
-              colors={topChains.map((c) => (c.tokenSymbol ? `#${c.tokenSymbol}` : undefined))}
             />
             {totalHistoryPoints === 0 && (
               <div style={{ color: "var(--dim)", fontSize: 12, marginTop: 10 }}>

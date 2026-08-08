@@ -23,6 +23,7 @@ interface TVLChartProps {
 const CHAIN_COLORS: Record<string, string> = {
   Ethereum: "#627EEA",
   Solana: "#14F195",
+  BSC: "#F0B90B", // DefiLlama uses "BSC", not "Binance Smart Chain"
   "Binance Smart Chain": "#F0B90B",
   Arbitrum: "#28A0F0",
   Polygon: "#8247E5",
@@ -30,6 +31,7 @@ const CHAIN_COLORS: Record<string, string> = {
   Optimism: "#FF0420",
   Base: "#0052FF",
   Tron: "#FF060A",
+  Bitcoin: "#F7931A",
   Fantom: "#1969FF",
   Cronos: "#07A0C3",
   Kava: "#1A1A2E",

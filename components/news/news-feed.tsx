@@ -31,6 +31,8 @@ interface NewsFeedProps {
 export function NewsFeed({ initialItems = [], currencies = [], limit = 20 }: NewsFeedProps) {
   const [items, setItems] = useState<NewsItem[]>(initialItems);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -81,10 +83,34 @@ export function NewsFeed({ initialItems = [], currencies = [], limit = 20 }: New
     }
   };
 
+  /**
+   * Manual refresh — busts the server's in-memory news cache + Next.js data
+   * cache for the news pages, then refetches the first page from the client.
+   * One click, one POST, no spam protection needed (humans don't mash this).
+   */
+  const refresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/news/refresh", { method: "POST" });
+      if (!res.ok) throw new Error("Refresh failed");
+      const data = await res.json();
+      setRefreshedAt(data.at ?? new Date().toISOString());
+      // Re-pull page 1 with the now-cleared cache.
+      setPage(1);
+      await fetchNews(1, false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Refresh failed");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshing, fetchNews]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Header with source badges */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11 }}>
+      {/* Header with source badges + refresh button */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 11, alignItems: "center" }}>
         <span className="src-pill">CRYPTOPANIC</span>
         <span className="src-pill" style={{ background: "rgba(34,197,94,0.14)", color: "#22C55E", borderColor: "rgba(34,197,94,0.45)" }}>
           RSS FALLBACK
@@ -94,7 +120,46 @@ export function NewsFeed({ initialItems = [], currencies = [], limit = 20 }: New
             {c}
           </span>
         ))}
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+          {refreshedAt && (
+            <span style={{ color: "var(--dim)", fontSize: 11 }} title={new Date(refreshedAt).toLocaleString()}>
+              refreshed {relativeTime(refreshedAt)}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={refreshing || loading}
+            aria-label="Refresh news"
+            title="Clear cache and fetch latest news"
+            className="btn btn-secondary btn-sm"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 11,
+              padding: "4px 10px",
+              opacity: refreshing ? 0.7 : 1,
+              cursor: refreshing ? "wait" : "pointer",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                border: "1.5px solid currentColor",
+                borderTopColor: "transparent",
+                animation: refreshing ? "spin 0.7s linear infinite" : "none",
+              }}
+            />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
       </div>
+
+      <style>{`@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }`}</style>
 
       {/* News Items */}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

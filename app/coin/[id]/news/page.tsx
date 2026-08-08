@@ -11,6 +11,7 @@ import { fetchCoinDetail } from "@/lib/coingecko";
 import { fetchNewsForCurrencies } from "@/lib/news";
 import { getCoinByGeckoId, listCoins } from "@/lib/coins";
 import { NewsFeed } from "@/components/news/news-feed";
+import { NewsRefreshButton } from "@/components/news/news-refresh-button";
 import { CoinHeader } from "@/components/coin-detail/coin-header";
 import { TabStrip } from "@/components/coin-detail/tab-strip";
 
@@ -87,12 +88,15 @@ export default async function NewsPage({
               Filtered to {coin.symbol} · CryptoPanic + RSS feeds
             </div>
           </div>
-          <Link
-            href="/news"
-            style={{ color: "var(--muted)", fontSize: 13, textDecoration: "none" }}
-          >
-            All news →
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <NewsRefreshButton />
+            <Link
+              href="/news"
+              style={{ color: "var(--muted)", fontSize: 13, textDecoration: "none" }}
+            >
+              All news →
+            </Link>
+          </div>
         </div>
 
         {loadError ? (
