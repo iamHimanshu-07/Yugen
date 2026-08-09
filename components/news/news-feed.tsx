@@ -34,16 +34,17 @@ export function NewsFeed({ initialItems = [], currencies = [], limit = 20 }: New
   const [refreshing, setRefreshing] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchNews = useCallback(async (pageNum: number, append = false) => {
     setLoading(true);
     setError(null);
     try {
+      const offset = (pageNum - 1) * limit;
       const params = new URLSearchParams({
         limit: String(limit),
-        page: String(pageNum),
+        offset: String(offset),
         ...(currencies.length > 0 && { currencies: currencies.join(",") }),
       });
       const res = await fetch(`/api/news?${params}`);
@@ -60,7 +61,7 @@ export function NewsFeed({ initialItems = [], currencies = [], limit = 20 }: New
       } else {
         setItems(newItems);
       }
-      setHasMore(newItems.length >= limit);
+      setHasMore(newItems.length === limit); // true if we got a full page
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load news");
     } finally {
@@ -241,7 +242,7 @@ function NewsCard({ item }: { item: NewsItem }) {
 
         {/* External link icon */}
         {isExternal && (
-          <span style={{ color: "var(--muted)", fontSize: 18, marginTop: 2, flexShrink: 0 }}>↗</span>
+          <span style={{ color: "var(--muted)", fontSize: 18, marginTop: 2, flexShrink: 0 }}>��↗</span>
         )}
       </div>
     </Link>
