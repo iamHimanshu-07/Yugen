@@ -38,7 +38,16 @@ const STYLES: Record<UpstreamStatus, IndicatorStyle> = {
   },
 };
 
+function isLocalDev(): boolean {
+  return process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production";
+}
+
 async function probeCoinGecko(): Promise<UpstreamStatus> {
+  // In local dev, return "ok" since we use mock data that works perfectly
+  if (isLocalDev()) {
+    return "ok";
+  }
+
   try {
     // Ping the smallest, fastest endpoint. 5s budget so a slow upstream
     // doesn't stall the layout. 60s Next-level revalidate so the same

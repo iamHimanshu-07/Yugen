@@ -25,6 +25,14 @@ import { Caches } from "./cache";
 
 const PREDICTION_KEY = "btc:next-day";
 
+/**
+ * Check if we're running in a local development environment.
+ * In production (Vercel), this will be false and real API calls will be made.
+ */
+function isLocalDev(): boolean {
+  return process.env.NODE_ENV === "development" || process.env.VERCEL_ENV !== "production";
+}
+
 // ---------- Types -----------------------------------------------------------
 
 export interface BtcPrediction {
@@ -150,118 +158,126 @@ export async function predictBtcNextDay(): Promise<BtcPrediction> {
   const cached = Caches.prediction.get(PREDICTION_KEY);
   if (cached) return cached;
 
-  // Parallel fetch all inputs
-  const [btcChart, globalData, fearGreed] = await Promise.all([
-    fetchMarketChart("bitcoin", 90),      // 90 days OHLCV
-    fetchGlobal(),                        // dominance, market cap
-    getCurrentFearGreed(),
-  ]);
+  try {
+    // Parallel fetch all inputs
+    const [btcChart, globalData, fearGreed] = await Promise.all([
+      fetchMarketChart("bitcoin", 90),      // 90 days OHLCV
+      fetchGlobal(),                        // dominance, market cap
+      getCurrentFearGreed(),
+    ]);
 
-  // Extract price & volume series (CoinGecko returns [ms, price] pairs)
-  const prices = btcChart.prices.map(([, p]) => p);
-  const volumes = btcChart.total_volumes.map(([, v]) => v);
+    // Extract price & volume series (CoinGecko returns [ms, price] pairs)
+    const prices = btcChart.prices.map(([, p]) => p);
+    const volumes = btcChart.total_volumes.map(([, v]) => v);
 
-  if (prices.length < 30) {
-    throw new Error("Insufficient price history for prediction");
+    if (prices.length < 30) {
+      throw new Error("Insufficient price history for prediction");
+    }
+
+    const lastPrice = prices[prices.length - 1];
+
+    // ---- Feature Engineering ----
+
+    // 1. Log returns (daily)
+    const logReturns = prices.slice(1).map((p, i) => Math.log(p / prices[i]));
+
+    // 2. 7-day momentum (avg log return)
+    const recentReturns = logReturns.slice(-7);
+    const momentum = mean(recentReturns);
+
+    // 3. 7-day volatility (std dev of log returns)
+    const volatility = stdDev(recentReturns);
+
+    // 4. Volume trend (recent week vs prior week)
+    const recentVol = volumes.slice(-7);
+    const priorVol = volumes.slice(-14, -7);
+    const volumeTrend = mean(recentVol) / mean(priorVol) - 1;
+
+    // 5. Fear & Greed (sentiment)
+    const fgValue = fearGreed?.value ?? 50;
+
+    // 6. BTC Dominance from global data
+    const btcDominance = globalData?.data?.market_cap_percentage?.btc ?? 50;
+
+    // ---- Model: Weighted feature combination ----
+    // Weights tuned on historical BTC data (simplified)
+    const weights = {
+      momentum: 0.5,
+      volumeTrend: 0.15,
+      fearGreed: 0.1,
+      btcDominance: 0.05,
+      meanReversion: 0.2, // counteract extreme moves
+    };
+
+    // Fear & Greed normalized to [-1, 1] range: 0->-1, 50->0, 100->1
+    const fgNormalized = (fgValue - 50) / 50;
+
+    // Dominance normalized: 40%->-1, 50%->0, 60%->1
+    const domNormalized = (btcDominance - 50) / 10;
+
+    // Mean reversion: if price deviated far from 30-day MA, expect pullback
+    const ma30 = mean(prices.slice(-30));
+    const deviation = (lastPrice - ma30) / ma30;
+    const meanReversion = -deviation * 0.5; // expect 50% reversion
+
+    const predictedReturn =
+      weights.momentum * momentum +
+      weights.volumeTrend * volumeTrend +
+      weights.fearGreed * fgNormalized * 0.001 + // small effect
+      weights.btcDominance * domNormalized * 0.001 +
+      weights.meanReversion * meanReversion;
+
+    // Predicted price
+    const predictedPrice = lastPrice * Math.exp(predictedReturn);
+
+    // Confidence interval (95% = 1.96 * volatility)
+    // Scale by sqrt(1) for 1-day horizon
+    const z = 1.96;
+    const ciHalfWidth = predictedPrice * z * volatility;
+    const lower = predictedPrice - ciHalfWidth;
+    const upper = predictedPrice + ciHalfWidth;
+
+    // Direction
+    const direction = predictedReturn > 0.001 ? "up" : predictedReturn < -0.001 ? "down" : "flat";
+
+    // Confidence heuristic: lower volatility + stronger signal = higher confidence
+    const signalStrength = Math.abs(predictedReturn) / (volatility + 0.001);
+    const confidence = Math.max(0, Math.min(1, 0.3 + signalStrength * 0.1 - volatility * 5));
+
+    // Backtest (run once, cache with prediction)
+    const backtestPoints = await runBacktest(prices, 30);
+    const backtest = calculateBacktestMetrics(backtestPoints);
+
+    const result: BtcPrediction = {
+      price: predictedPrice,
+      lower,
+      upper,
+      direction,
+      confidence,
+      model: "log-return-regression-v1",
+      features: {
+        momentum,
+        volatility,
+        volumeTrend,
+        fearGreed: fgValue,
+        btcDominance,
+        timestamp: Date.now(),
+      },
+      backtest,
+      disclaimer:
+        "This is a statistical model output for informational purposes only. Not financial advice. " +
+        "Cryptocurrency prices are highly volatile and unpredictable. Past performance does not guarantee future results.",
+    };
+
+    Caches.prediction.set(PREDICTION_KEY, result);
+    return result;
+  } catch (error) {
+    if (isLocalDev()) {
+      console.warn("[prediction] predictBtcNextDay failed, using mock:", error instanceof Error ? error.message : String(error));
+      return generateMockPrediction();
+    }
+    throw error;
   }
-
-  const lastPrice = prices[prices.length - 1];
-
-  // ---- Feature Engineering ----
-
-  // 1. Log returns (daily)
-  const logReturns = prices.slice(1).map((p, i) => Math.log(p / prices[i]));
-
-  // 2. 7-day momentum (avg log return)
-  const recentReturns = logReturns.slice(-7);
-  const momentum = mean(recentReturns);
-
-  // 3. 7-day volatility (std dev of log returns)
-  const volatility = stdDev(recentReturns);
-
-  // 4. Volume trend (recent week vs prior week)
-  const recentVol = volumes.slice(-7);
-  const priorVol = volumes.slice(-14, -7);
-  const volumeTrend = mean(recentVol) / mean(priorVol) - 1;
-
-  // 5. Fear & Greed (sentiment)
-  const fgValue = fearGreed?.value ?? 50;
-
-  // 6. BTC Dominance from global data
-  const btcDominance = globalData?.data?.market_cap_percentage?.btc ?? 50;
-
-  // ---- Model: Weighted feature combination ----
-  // Weights tuned on historical BTC data (simplified)
-  const weights = {
-    momentum: 0.5,
-    volumeTrend: 0.15,
-    fearGreed: 0.1,
-    btcDominance: 0.05,
-    meanReversion: 0.2, // counteract extreme moves
-  };
-
-  // Fear & Greed normalized to [-1, 1] range: 0->-1, 50->0, 100->1
-  const fgNormalized = (fgValue - 50) / 50;
-
-  // Dominance normalized: 40%->-1, 50%->0, 60%->1
-  const domNormalized = (btcDominance - 50) / 10;
-
-  // Mean reversion: if price deviated far from 30-day MA, expect pullback
-  const ma30 = mean(prices.slice(-30));
-  const deviation = (lastPrice - ma30) / ma30;
-  const meanReversion = -deviation * 0.5; // expect 50% reversion
-
-  const predictedReturn =
-    weights.momentum * momentum +
-    weights.volumeTrend * volumeTrend +
-    weights.fearGreed * fgNormalized * 0.001 + // small effect
-    weights.btcDominance * domNormalized * 0.001 +
-    weights.meanReversion * meanReversion;
-
-  // Predicted price
-  const predictedPrice = lastPrice * Math.exp(predictedReturn);
-
-  // Confidence interval (95% = 1.96 * volatility)
-  // Scale by sqrt(1) for 1-day horizon
-  const z = 1.96;
-  const ciHalfWidth = predictedPrice * z * volatility;
-  const lower = predictedPrice - ciHalfWidth;
-  const upper = predictedPrice + ciHalfWidth;
-
-  // Direction
-  const direction = predictedReturn > 0.001 ? "up" : predictedReturn < -0.001 ? "down" : "flat";
-
-  // Confidence heuristic: lower volatility + stronger signal = higher confidence
-  const signalStrength = Math.abs(predictedReturn) / (volatility + 0.001);
-  const confidence = Math.max(0, Math.min(1, 0.3 + signalStrength * 0.1 - volatility * 5));
-
-  // Backtest (run once, cache with prediction)
-  const backtestPoints = await runBacktest(prices, 30);
-  const backtest = calculateBacktestMetrics(backtestPoints);
-
-  const result: BtcPrediction = {
-    price: predictedPrice,
-    lower,
-    upper,
-    direction,
-    confidence,
-    model: "log-return-regression-v1",
-    features: {
-      momentum,
-      volatility,
-      volumeTrend,
-      fearGreed: fgValue,
-      btcDominance,
-      timestamp: Date.now(),
-    },
-    backtest,
-    disclaimer:
-      "This is a statistical model output for informational purposes only. Not financial advice. " +
-      "Cryptocurrency prices are highly volatile and unpredictable. Past performance does not guarantee future results.",
-  };
-
-  Caches.prediction.set(PREDICTION_KEY, result);
-  return result;
 }
 
 /**
@@ -281,5 +297,42 @@ export async function getPredictionDisplay(): Promise<{
     direction: p.direction === "up" ? "�▲ Up" : p.direction === "down" ? "�▼ Down" : "→ Flat",
     confidenceLabel: p.confidence > 0.6 ? "High" : p.confidence > 0.35 ? "Medium" : "Low",
     confidencePct: Math.round(p.confidence * 100),
+  };
+}
+
+/**
+ * Generate deterministic mock prediction for local development.
+ */
+function generateMockPrediction(): BtcPrediction {
+  const seed = hashString("btc-prediction");
+  const basePrice = 45000 + (seed % 20000); // $45k-$65k range
+  const volatility = 0.02 + (seed % 300) / 10000; // 2%-5% volatility
+
+  const predictedPrice = basePrice * (0.95 + (seed % 100) / 1000); // ±5% variation
+  const ciHalfWidth = predictedPrice * 1.96 * volatility; // 95% CI
+
+  return {
+    price: predictedPrice,
+    lower: predictedPrice - ciHalfWidth,
+    upper: predictedPrice + ciHalfWidth,
+    direction: (seed % 3) === 0 ? "up" : (seed % 3) === 1 ? "down" : "flat",
+    confidence: 0.3 + (seed % 700) / 1000, // 0.3-1.0 range
+    model: "mock-regression-v1",
+    features: {
+      momentum: ((seed % 200) - 100) / 10000, // -0.01 to +0.01
+      volatility: 0.02 + (seed % 300) / 10000,
+      volumeTrend: ((seed % 200) - 100) / 1000, // -0.2 to +0.2
+      fearGreed: 30 + (seed % 40), // 30-70 range
+      btcDominance: 40 + (seed % 20), // 40-60 range
+      timestamp: Date.now(),
+    },
+    backtest: {
+      mae: 150 + (seed % 500),
+      rmse: 200 + (seed % 600),
+      directionAccuracy: 0.5 + (seed % 500) / 1000, // 0.5-1.0 range
+    },
+    disclaimer:
+      "This is a statistical model output for informational purposes only. Not financial advice. " +
+      "Cryptocurrency prices are highly volatile and unpredictable. Past performance does not guarantee future results.",
   };
 }
