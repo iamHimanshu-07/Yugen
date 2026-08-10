@@ -35,6 +35,9 @@ export default async function PredictPage() {
     loadError = e instanceof Error ? e.message : "Could not load prediction";
   }
 
+  // Transform prediction data for ForecastChart component
+  const chartData = prediction && display ? transformPredictionForChart(prediction, display, historicalPoints) : null;
+
   return (
     <>
       <header className="section-tight" style={{ paddingTop: 56, paddingBottom: 0 }}>
@@ -57,7 +60,7 @@ export default async function PredictPage() {
               </div>
               <div>
                 <div style={{ fontSize: 11, letterSpacing: "0.10em", textTransform: "uppercase", fontWeight: 700 }}>Model</div>
-                <div className="mono" style={{ fontSize: 12, color: "var(--accent)" }}>{prediction.model}</div>
+                <div className="mono" style={{ fontSize: 12, color: "var(--accent)" }}>{prediction.metadata.model}</div>
               </div>
             </div>
           )}
@@ -70,24 +73,18 @@ export default async function PredictPage() {
             <div style={{ color: "var(--bear)", fontWeight: 700, marginBottom: 8 }}>Could not generate prediction</div>
             <div style={{ color: "var(--muted)", fontSize: 14 }}>{loadError}</div>
           </div>
-        ) : prediction && display ? (
+        ) : prediction && display && chartData ? (
           <>
             {/* Main Forecast Chart */}
             <section style={{ marginBottom: 32 }}>
-              <ForecastChart
-                data={{
-                  prediction,
-                  display,
-                  historicalPoints,
-                }}
-              />
+              <ForecastChart data={chartData} />
             </section>
 
             {/* Metrics Card */}
             <section style={{ marginBottom: 32 }}>
               <MetricsCard
-                backtest={prediction.backtest}
-                model={prediction.model}
+                backtest={chartData.prediction.backtest}
+                model={prediction.metadata.model}
               />
             </section>
 
@@ -141,7 +138,7 @@ export default async function PredictPage() {
             {/* Disclaimer */}
             <section style={{ marginBottom: 32 }}>
               <div className="card" style={{ borderColor: "rgba(255,106,26,0.5)", background: "rgba(255,106,26,0.05)", padding: 20 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>⚠ Important Disclaimer</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>��⚠ Important Disclaimer</div>
                 <div style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.7 }}>
                   {prediction.disclaimer}
                   <br /><br />
@@ -170,6 +167,59 @@ export default async function PredictPage() {
       </section>
     </>
   );
+}
+
+/* ============================== Helper Functions ============================== */
+
+/**
+ * Transforms BtcPrediction and PredictionDisplay to match ForecastChart expectations
+ */
+function transformPredictionForChart(
+  prediction: Awaited<ReturnType<typeof predictBtcNextDay>>,
+  display: Awaited<ReturnType<typeof getPredictionDisplay>>,
+  historicalPoints: [number, number][]
+) {
+  // We need recentClose to determine if prediction should be "flat"
+  // Since we don't have it easily available, we'll approximate using the last historical point
+  const recentClose = historicalPoints[historicalPoints.length - 1]?.[1] || 0;
+  const priceChangePct = Math.abs((prediction.predictedPrice - recentClose) / recentClose);
+
+  // Determine direction: flat if change is less than 0.1%
+  const direction: "up" | "down" | "flat" =
+    priceChangePct < 0.001 ? "flat" :
+    prediction.predictedPrice > recentClose ? "up" : "down";
+
+  return {
+    prediction: {
+      price: prediction.predictedPrice,
+      lower: prediction.ciLower,
+      upper: prediction.ciUpper,
+      direction,
+      confidence: prediction.confidence,
+      model: prediction.metadata.model,
+      features: {
+        momentum: prediction.features.momentum,
+        volatility: prediction.features.volatility,
+        volumeTrend: prediction.features.volumeTrend,
+        fearGreed: prediction.features.fearGreed,
+        btcDominance: prediction.features.btcDominance,
+        timestamp: Date.now(),
+      },
+      backtest: {
+        mae: prediction.backtest.mae,
+        rmse: prediction.backtest.mae * 1.2, // Approximate RMSE from MAE
+        directionAccuracy: prediction.backtest.accuracy,
+      },
+    },
+    display: {
+      price: display.price,
+      range: `$${prediction.ciLower.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - $${prediction.ciUpper.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      direction: direction === "up" ? "Up" : direction === "down" ? "Down" : "Flat",
+      confidenceLabel: prediction.confidence >= 0.8 ? "High" : prediction.confidence >= 0.6 ? "Medium" : "Low",
+      confidencePct: display.confidencePct,
+    },
+    historicalPoints,
+  };
 }
 
 /* ============================== Feature Card ============================== */

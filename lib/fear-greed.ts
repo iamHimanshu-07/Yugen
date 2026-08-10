@@ -7,6 +7,7 @@
 
 import { withRateLimit } from "./rate-limit";
 import { Caches } from "./cache";
+import { hashString } from "./utils";
 
 const BASE = "https://api.alternative.me";
 const REVALIDATE_SECONDS = 3600; // 1 hour (index updates daily)
@@ -125,4 +126,57 @@ export async function fetchFearGreedHistory(days = 30): Promise<[number, number]
     }
     throw error;
   }
+}
+
+// ---------- Local Development Mocks ------------------------------------------
+
+/**
+ * Generate deterministic mock Fear & Greed data for local development.
+ */
+function generateMockFearGreed(limit = 30): FearGreedResponse {
+  const now = Math.floor(Date.now() / 1000);
+  const classifications = ["Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"] as const;
+
+  const data: FearGreedEntry[] = [];
+  for (let i = 0; i < limit; i++) {
+    // Deterministic but varied values based on hash
+    const seed = hashString(`feargreed:${i}`);
+    const value = 20 + (seed % 60); // 20-80 range
+    const classificationIndex = Math.floor((value / 100) * classifications.length);
+    const classification = classifications[classificationIndex];
+
+    data.push({
+      value,
+      value_classification: classification,
+      timestamp: now - (limit - i) * 86400, // one day intervals
+      time_until_update: "86400", // 24 hours in seconds
+    });
+  }
+
+  return {
+    name: "Fear and Greed Index",
+    data,
+    metadata: { error: null }
+  };
+}
+
+/**
+ * Generate deterministic mock Fear & Greed history for local development.
+ */
+function generateMockFearGreedHistory(days = 30): [number, number][] {
+  const now = Date.now();
+  const points: [number, number][] = [];
+
+  for (let i = 0; i < days; i++) {
+    // Deterministic but varied values based on hash
+    const seed = hashString(`feargreedhistory:${i}`);
+    const value = 20 + (seed % 60); // 20-80 range
+
+    points.push([
+      now - (days - i) * 86400 * 1000, // timestamp in ms
+      value
+    ]);
+  }
+
+  return points;
 }

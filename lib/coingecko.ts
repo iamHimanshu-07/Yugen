@@ -13,11 +13,17 @@
  *   GET /global
  */
 
-import { listCoins, type Coin } from "./coins";
+import { listCoins, type Coin, getCoinByGeckoId } from "./coins";
 import { hashString } from "./utils";
 
 const BASE = "https://api.coingecko.com/api/v3";
 const REVALIDATE_SECONDS = 60;
+
+// Use the authoritative COINS from coins.ts instead of duplicating
+const COINS: Record<string, Coin> = listCoins().reduce((acc, coin) => {
+  acc[coin.coingeckoId] = coin;
+  return acc;
+}, {} as Record<string, Coin>);
 
 // ---------- tiny in-memory LRU to back off from CoinGecko rate limits -------
 
@@ -39,9 +45,9 @@ function isLocalDev(): boolean {
  */
 function generateMockMarketRow(coin: Coin): MarketRow {
   const seed = hashString(coin.coingeckoId);
-  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][
-    Object.values(COINS).findIndex((c) => c.coingeckoId === coin.coingeckoId)
-  ] || 100;
+  // Find index in COINS array for deterministic price base
+  const coinIndex = listCoins().findIndex((c) => c.coingeckoId === coin.coingeckoId);
+  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][coinIndex] || 100;
 
   // Deterministic variations based on seed
   const price = priceBase * (0.8 + (seed % 40) / 100);
@@ -56,7 +62,7 @@ function generateMockMarketRow(coin: Coin): MarketRow {
     image: `https://assets.coingecko.com/coins/images/1/${coin.coingeckoId}.png`,
     current_price: price,
     market_cap: marketCap,
-    market_cap_rank: Object.values(COINS).findIndex((c) => c.coingeckoId === coin.coingeckoId) + 1,
+    market_cap_rank: coinIndex + 1,
     fully_diluted_valuation: marketCap * 1.1,
     total_volume: volume24h,
     high_24h: price * 1.05,
@@ -73,23 +79,23 @@ function generateMockMarketRow(coin: Coin): MarketRow {
   };
 }
 
-// Reference COINS for mock generation
-const COINS = {
-  bitcoin: { symbol: "BTC", name: "Bitcoin", coingeckoId: "bitcoin" },
-  ethereum: { symbol: "ETH", name: "Ethereum", coingeckoId: "ethereum" },
-  binancecoin: { symbol: "BNB", name: "BNB", coingeckoId: "binancecoin" },
-  solana: { symbol: "SOL", name: "Solana", coingeckoId: "solana" },
-  ripple: { symbol: "XRP", name: "XRP", coingeckoId: "ripple" },
-  cardano: { symbol: "ADA", name: "Cardano", coingeckoId: "cardano" },
-  tron: { symbol: "TRX", name: "TRON", coingeckoId: "tron" },
-  chainlink: { symbol: "LINK", name: "Chainlink", coingeckoId: "chainlink" },
-  stellar: { symbol: "XLM", name: "Stellar", coingeckoId: "stellar" },
-  zcash: { symbol: "ZEC", name: "Zcash", coingeckoId: "zcash" },
-  monero: { symbol: "XMR", name: "Monero", coingeckoId: "monero" },
-  dogecoin: { symbol: "DOGE", name: "Dogecoin", coingeckoId: "dogecoin" },
-  tether: { symbol: "USDT", name: "Tether", coingeckoId: "tether" },
-  "usd-coin": { symbol: "USDC", name: "USD Coin", coingeckoId: "usd-coin" },
-} as Record<string, Coin>;
+// Reference COINS for mock generation - now using the authoritative list
+// const COINS = {
+//   bitcoin: { symbol: "BTC", name: "Bitcoin", coingeckoId: "bitcoin" },
+//   ethereum: { symbol: "ETH", name: "Ethereum", coingeckoId: "ethereum" },
+//   binancecoin: { symbol: "BNB", name: "BNB", coingeckoId: "binancecoin" },
+//   solana: { symbol: "SOL", name: "Solana", coingeckoId: "solana" },
+//   ripple: { symbol: "XRP", name: "XRP", coingeckoId: "ripple" },
+//   cardano: { symbol: "ADA", name: "Cardano", coingeckoId: "cardano" },
+//   tron: { symbol: "TRX", name: "TRON", coingeckoId: "tron" },
+//   chainlink: { symbol: "LINK", name: "Chainlink", coingeckoId: "chainlink" },
+//   stellar: { symbol: "XLM", name: "Stellar", coingeckoId: "stellar" },
+//   zcash: { symbol: "ZEC", name: "Zcash", coingeckoId: "zcash" },
+//   monero: { symbol: "XMR", name: "Monero", coingeckoId: "monero" },
+//   dogecoin: { symbol: "DOGE", name: "Dogecoin", coingeckoId: "dogecoin" },
+//   tether: { symbol: "USDT", name: "Tether", coingeckoId: "tether" },
+//   "usd-coin": { symbol: "USDC", name: "USD Coin", coingeckoId: "usd-coin" },
+// } as Record<string, Coin>;
 
 async function cachedFetch<T>(url: string, ttlSeconds = REVALIDATE_SECONDS): Promise<T> {
   const cached = CACHE.get(url) as Entry<T> | undefined;
@@ -311,9 +317,9 @@ function generateMockCoinDetail(id: string): CoinDetail {
   const coin = getCoinByGeckoId(id);
   if (!coin) throw new Error(`Unknown coin: ${id}`);
   const seed = hashString(id);
-  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][
-    Object.values(COINS).findIndex((c) => c.coingeckoId === id)
-  ] || 100;
+  // Find index in COINS array for deterministic price base
+  const coinIndex = listCoins().findIndex((c) => c.coingeckoId === id);
+  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][coinIndex] || 100;
   const price = priceBase * (0.8 + (seed % 40) / 100);
   const marketCap = price * (1000000 + (seed % 50000000));
   const change24h = ((seed % 200) - 100) / 10;
@@ -324,7 +330,7 @@ function generateMockCoinDetail(id: string): CoinDetail {
     name: coin.name,
     description: { en: `${coin.name} is a cryptocurrency.` },
     image: { small: `https://assets.coingecko.com/coins/images/1/small/${coin.coingeckoId}.png`, large: `https://assets.coingecko.com/coins/images/1/large/${coin.coingeckoId}.png` },
-    market_cap_rank: Object.values(COINS).findIndex((c) => c.coingeckoId === id) + 1,
+    market_cap_rank: coinIndex + 1,
     market_data: {
       current_price: { usd: price },
       market_cap: { usd: marketCap },
@@ -386,9 +392,9 @@ function generateMockMarketChart(id: string, days: number): MarketChart {
   const coin = getCoinByGeckoId(id);
   if (!coin) throw new Error(`Unknown coin: ${id}`);
   const seed = hashString(id);
-  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][
-    Object.values(COINS).findIndex((c) => c.coingeckoId === id)
-  ] || 100;
+  // Find index in COINS array for deterministic price base
+  const coinIndex = listCoins().findIndex((c) => c.coingeckoId === id);
+  const priceBase = [45000, 2500, 350, 100, 0.5, 0.4, 0.1, 12, 0.1, 0.08, 30, 150, 0.08, 1, 1][coinIndex] || 100;
   const price = priceBase * (0.8 + (seed % 40) / 100);
 
   // Granularity: 1d -> ~5min (288 points), 7d -> hourly (168), 30d+ -> daily

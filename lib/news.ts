@@ -11,6 +11,7 @@
 
 import { withRateLimit, tryWithRateLimit } from "./rate-limit";
 import { Caches } from "./cache";
+import { hashString } from "./utils";
 
 const CRYPTOPANIC_BASE = "https://cryptopanic.com/api/v1";
 const REVALIDATE_SECONDS = 300;
@@ -324,4 +325,3 @@ function generateMockNews(limit = 20): NewsItem[] {
 
   return items;
 }
-

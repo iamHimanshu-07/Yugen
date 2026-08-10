@@ -232,7 +232,10 @@ export const Caches = {
   }),
 
   /** BTC prediction — 3600s fresh, 7200s stale, 5 entries. */
-  prediction: createCache<import("./prediction").BtcPrediction>({
+  prediction: createCache<{
+    prediction: import("./prediction").BtcPrediction;
+    timestamp: number;
+  }>({
     ttl: 3600,
     swr: 7200,
     maxSize: 5,
