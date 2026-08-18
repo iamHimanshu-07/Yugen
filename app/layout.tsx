@@ -97,9 +97,6 @@ async function SiteFooter() {
             <li><a href="/">Home</a></li>
             <li><a href="/markets">Markets</a></li>
             <li><a href="/about">About</a></li>
-            <li><a href="/coin/bitcoin">Bitcoin</a></li>
-            <li><a href="/coin/ethereum">Ethereum</a></li>
-            <li><a href="/coin/solana">Solana</a></li>
           </ul>
         </div>
         <div>
