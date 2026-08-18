@@ -59,7 +59,9 @@ export async function GET(_req: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : "fetch failed";
     console.error("[news] error:", msg);
-    console.error("[news] error stack:", e.stack);
+    if (e instanceof Error) {
+      console.error("[news] error stack:", e.stack);
+    }
     return Response.json({ error: msg }, { status: 502 });
   }
 }
