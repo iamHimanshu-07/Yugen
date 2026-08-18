@@ -917,7 +917,7 @@ export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow
     () => cachedFetch<MarketRow[]>(
       `${COINGECKO_BASE}/coins/markets?vs_currency=${vsCurrency}&ids=${listCoins()
         .map((c: Coin) => c.coingeckoId)
-        .join(",")}&order=market_cap_desc&per_page=50&page=1&sparkline=true&price_change_percentage=1h%2C24h%2C7d`
+        .join(",")}&order=market_cap_desc&per_page=50&page=1&sparkline=true&price_change_percentage=1h%2C24h%2C7d%2C30d%2C1y`
     ),
     // Fallbacks
     [
