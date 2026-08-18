@@ -302,7 +302,7 @@ async function fetchWithFallback<T>(
   try {
     return await primaryFn();
   } catch (primaryError) {
-    console.warn('[coingecko] Primary API (CoinGecko) failed:', primaryError.message);
+    console.warn('[coingecko] Primary API (CoinGecko) failed:', (primaryError as Error).message);
     // Try each fallback in order
     for (let i = 0; i < fallbackFns.length; i++) {
       const fallbackName = ['CoinPaprika', 'Binance', 'KuCoin'][i] || `Fallback ${i + 1}`;
@@ -311,7 +311,7 @@ async function fetchWithFallback<T>(
         console.info(`[coingecko] Successfully fetched data from ${fallbackName}`);
         return result;
       } catch (fallbackError) {
-        console.warn(`[coingecko] ${fallbackName} failed:`, fallbackError.message);
+        console.warn(`[coingecko] ${fallbackName} failed:`, (fallbackError as Error).message);
         // Continue to next fallback
         continue;
       }
@@ -355,6 +355,13 @@ export interface MarketRow {
   atl: number | null;
   sparkline_in_7d: { price: number[] } | null;
   last_updated: string | null;
+  // Additional fields for enhanced display
+  high24h?: number | null;
+  low24h?: number | null;
+  priceChangePercentage7d?: number | null;
+  priceChangePercentage30d?: number | null;
+  priceChangePercentage1y?: number | null;
+  circulatingSupply?: number | null;
 }
 
 export interface CoinDetail {

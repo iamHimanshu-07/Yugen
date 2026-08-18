@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { fmtBigUSD, fmtPct, pctColor } from "@/lib/utils";
+import { fmtBigUSD, fmtPct, fmtUSD, fmtInt, pctColor } from "@/lib/utils";
 
 export interface CatalogItem {
   symbol: string;

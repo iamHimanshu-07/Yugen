@@ -107,12 +107,12 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
           />
           <KpiBlock
             label="All-time high"
-            value={detail ? fmtUSD(detail.ath.usd, 2) : "—"}
+            value={detail ? fmtUSD(detail.market_data.ath.usd, 2) : "—"}
             neutral
           />
           <KpiBlock
             label="All-time low"
-            value={detail ? fmtUSD(detail.atl.usd, 2) : "—"}
+            value={detail ? fmtUSD(detail.market_data.atl.usd, 2) : "—"}
             neutral
           />
         </div>
