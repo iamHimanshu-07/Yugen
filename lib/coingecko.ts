@@ -302,11 +302,16 @@ async function fetchWithFallback<T>(
   try {
     return await primaryFn();
   } catch (primaryError) {
+    console.warn('[coingecko] Primary API (CoinGecko) failed:', primaryError.message);
     // Try each fallback in order
-    for (const fallbackFn of fallbackFns) {
+    for (let i = 0; i < fallbackFns.length; i++) {
+      const fallbackName = ['CoinPaprika', 'Binance', 'KuCoin'][i] || `Fallback ${i + 1}`;
       try {
-        return await fallbackFn();
+        const result = await fallbackFns[i]();
+        console.info(`[coingecko] Successfully fetched data from ${fallbackName}`);
+        return result;
       } catch (fallbackError) {
+        console.warn(`[coingecko] ${fallbackName} failed:`, fallbackError.message);
         // Continue to next fallback
         continue;
       }
@@ -462,8 +467,30 @@ function mapCoinPaprikaToMarketRow(data: any): MarketRow {
  */
 function mapBinanceToMarketRow(data: any): MarketRow {
   // Binance uses symbols like BTCUSDT, need to extract base asset
-  const symbol = data.symbol.toUpperCase().replace('USDT', '');
-  const coin = listCoins().find(c => c.symbol === symbol);
+  let symbol = data.symbol.toUpperCase().replace('USDT', '');
+  let coin = listCoins().find(c => c.symbol === symbol);
+
+  // Try multiple matching strategies for better cross-API compatibility
+  if (!coin) {
+    // Strategy 1: Try matching by coingeckoId
+    coin = listCoins().find(c => c.coingeckoId === symbol.toLowerCase());
+  }
+  if (!coin) {
+    // Strategy 2: Try matching by name (case insensitive)
+    coin = listCoins().find(c => c.name.toUpperCase() === symbol);
+  }
+  if (!coin) {
+    // Strategy 3: Try with common variations
+    const variations = [
+      symbol,
+      symbol.replace('BNB', 'BNBinance'),  // Special case for BNB
+      symbol.replace('USDT', ''),           // Remove USDT if somehow still there
+    ];
+    for (const variation of variations) {
+      coin = listCoins().find(c => c.symbol === variation);
+      if (coin) break;
+    }
+  }
 
   return {
     id: coin?.coingeckoId ?? symbol.toLowerCase(),
@@ -494,7 +521,29 @@ function mapBinanceToMarketRow(data: any): MarketRow {
  */
 function mapKuCoinToMarketRow(data: any): MarketRow {
   const symbol = data.symbol.toUpperCase().replace('-USDT', '');
-  const coin = listCoins().find(c => c.symbol === symbol);
+  let coin = listCoins().find(c => c.symbol === symbol);
+
+  // Try multiple matching strategies for better cross-API compatibility
+  if (!coin) {
+    // Strategy 1: Try matching by coingeckoId
+    coin = listCoins().find(c => c.coingeckoId === symbol.toLowerCase());
+  }
+  if (!coin) {
+    // Strategy 2: Try matching by name (case insensitive)
+    coin = listCoins().find(c => c.name.toUpperCase() === symbol);
+  }
+  if (!coin) {
+    // Strategy 3: Try with common variations
+    const variations = [
+      symbol,
+      symbol.replace('BNB', 'BNBinance'),  // Special case for BNB
+      symbol.replace('USDT', ''),           // Remove USDT if somehow still there
+    ];
+    for (const variation of variations) {
+      coin = listCoins().find(c => c.symbol === variation);
+      if (coin) break;
+    }
+  }
 
   return {
     id: coin?.coingeckoId ?? symbol.toLowerCase(),
@@ -550,103 +599,146 @@ function mapGlobalData(data: any): GlobalData {
  * Fetch market data from CoinPaprika
  */
 async function fetchCoinPaprikaMarkets(): Promise<MarketRow[]> {
-  // Get all coins first
-  const coins: any[] = await fetchFromCoinPaprika("/coins");
+  try {
+    // Get all coins first
+    const coins: any[] = await fetchFromCoinPaprika("/coins");
+    console.info(`[coingecko] CoinPaprika: fetched ${coins.length} coins`);
 
-  // Get tickers for all coins (CoinPaprika has a /tickers endpoint)
-  const tickers: any[] = await fetchFromCoinPaprika("/tickers");
+    // Get tickers for all coins (CoinPaprika has a /tickers endpoint)
+    const tickers: any[] = await fetchFromCoinPaprika("/tickers");
+    console.info(`[coingecko] CoinPaprika: fetched ${tickers.length} tickers`);
 
-  // Filter and map to our format
-  const marketRows: MarketRow[] = [];
-  for (const ticker of tickers) {
-    try {
-      // Match by symbol instead of ID for better cross-API compatibility
-      const coin = listCoins().find(c => c.symbol.toUpperCase() === ticker.symbol.toUpperCase());
-      if (coin) {
-        marketRows.push(mapCoinPaprikaToMarketRow(ticker));
+    // Filter and map to our format
+    const marketRows: MarketRow[] = [];
+    for (const ticker of tickers) {
+      try {
+        // Try multiple matching strategies for better cross-API compatibility
+        let coin: Coin | undefined = undefined;
+
+        // Strategy 1: Exact symbol match
+        coin = listCoins().find(c => c.symbol.toUpperCase() === ticker.symbol.toUpperCase());
+
+        // Strategy 2: Try matching by coingeckoId (some APIs might use this)
+        if (!coin) {
+          coin = listCoins().find(c => c.coingeckoId.toUpperCase() === ticker.symbol.toUpperCase());
+        }
+
+        // Strategy 3: Try matching by name (case insensitive)
+        if (!coin) {
+          coin = listCoins().find(c => c.name.toUpperCase() === ticker.symbol.toUpperCase());
+        }
+
+        // Strategy 4: Try removing common suffixes/prefixes and matching
+        if (!coin) {
+          const cleanSymbol = ticker.symbol.toUpperCase()
+            .replace(/-(USDT|BTC|ETH)$/, '')  // Remove -USDT, -BTC, -ETH suffixes
+            .replace(/^(USDT|BTC|ETH)/, '');   // Remove USDT, BTC, ETH prefixes
+          coin = listCoins().find(c => c.symbol.toUpperCase() === cleanSymbol);
+        }
+
+        if (coin) {
+          marketRows.push(mapCoinPaprikaToMarketRow(ticker));
+        }
+      } catch (mappingError) {
+        // Skip individual coin mapping errors to prevent breaking the whole fallback
+        console.warn('[coingecko] Failed to map CoinPaprika ticker:', ticker.symbol, mappingError);
+        continue;
       }
-    } catch (mappingError) {
-      // Skip individual coin mapping errors to prevent breaking the whole fallback
-      console.warn('[coingecko] Failed to map CoinPaprika ticker:', ticker.symbol, mappingError);
-      continue;
     }
+
+    console.info(`[coingecko] CoinPaprika: mapped ${marketRows.length} valid coins`);
+
+    // Sort by market cap descending (like CoinGecko default)
+    marketRows.sort((a, b) => {
+      if (!a.market_cap && !b.market_cap) return 0;
+      if (!a.market_cap) return 1;
+      if (!b.market_cap) return -1;
+      return b.market_cap - a.market_cap;
+    });
+
+    return marketRows;
+  } catch (error) {
+    console.error('[coingecko] CoinPaprika API error:', error);
+    throw error;
   }
-
-  // Sort by market cap descending (like CoinGecko default)
-  marketRows.sort((a, b) => {
-    if (!a.market_cap && !b.market_cap) return 0;
-    if (!a.market_cap) return 1;
-    if (!b.market_cap) return -1;
-    return b.market_cap - a.market_cap;
-  });
-
-  return marketRows;
 }
 
 /**
  * Fetch market data from Binance
  */
 async function fetchBinanceMarkets(): Promise<MarketRow[]> {
-  // Get 24h ticker data for all USDT pairs
-  const tickers: any[] = await fetchFromBinance("/ticker/24hr");
+  try {
+    // Get 24h ticker data for all USDT pairs
+    const tickers: any[] = await fetchFromBinance("/ticker/24hr");
+    console.info(`[coingecko] Binance: fetched ${tickers.length} tickers`);
 
-  // Filter to only USDT pairs and map to our format
-  const marketRows: MarketRow[] = [];
-  for (const ticker of tickers) {
-    if (ticker.symbol.toUpperCase().endsWith('USDT')) {
-      try {
-        const mapped = mapBinanceToMarketRow(ticker);
-        // Only include if it's one of our supported coins
-        if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
-          marketRows.push(mapped);
+    // Filter to only USDT pairs and map to our format
+    const marketRows: MarketRow[] = [];
+    for (const ticker of tickers) {
+      if (ticker.symbol.toUpperCase().endsWith('USDT')) {
+        try {
+          const mapped = mapBinanceToMarketRow(ticker);
+          // Only include if it's one of our supported coins
+          if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
+            marketRows.push(mapped);
+          }
+        } catch (mappingError) {
+          // Skip individual coin mapping errors to prevent breaking the whole fallback
+          console.warn('[coingecko] Failed to map Binance ticker:', ticker.symbol, mappingError);
+          continue;
         }
-      } catch (mappingError) {
-        // Skip individual coin mapping errors to prevent breaking the whole fallback
-        console.warn('[coingecko] Failed to map Binance ticker:', ticker.symbol, mappingError);
-        continue;
       }
     }
+
+    console.info(`[coingecko] Binance: mapped ${marketRows.length} valid USDT pairs`);
+
+    // Sort by market cap descending (approximate using volume * price as proxy)
+    marketRows.sort((a, b) => {
+      const volA = a.total_volume ?? 0;
+      const priceA = a.current_price ?? 0;
+      const volB = b.total_volume ?? 0;
+      const priceB = b.current_price ?? 0;
+      const approxCapA = volA * priceA;
+      const approxCapB = volB * priceB;
+      return approxCapB - approxCapA;
+    });
+
+    return marketRows;
+  } catch (error) {
+    console.error('[coingecko] Binance API error:', error);
+    throw error;
   }
-
-  // Sort by market cap descending (approximate using volume * price as proxy)
-  marketRows.sort((a, b) => {
-    const volA = a.total_volume ?? 0;
-    const priceA = a.current_price ?? 0;
-    const volB = b.total_volume ?? 0;
-    const priceB = b.current_price ?? 0;
-    const approxCapA = volA * priceA;
-    const approxCapB = volB * priceB;
-    return approxCapB - approxCapA;
-  });
-
-  return marketRows;
 }
 
 /**
  * Fetch market data from KuCoin
  */
 async function fetchKuCoinMarkets(): Promise<MarketRow[]> {
-  // Get all tickers
-  const response: any = await fetchFromKuCoin("/market/allTickers");
-  const tickers: any[] = response.ticker ?? [];
+  try {
+    // Get all tickers
+    const response: any = await fetchFromKuCoin("/market/allTickers");
+    const tickers: any[] = response.ticker ?? [];
+    console.info(`[coingecko] KuCoin: fetched ${tickers.length} tickers`);
 
-  // Filter to only USDT pairs and map to our format
-  const marketRows: MarketRow[] = [];
-  for (const ticker of tickers) {
-    if (ticker.symbol.toUpperCase().endsWith('-USDT')) {
-      try {
-        const mapped = mapKuCoinToMarketRow(ticker);
-        // Only include if it's one of our supported coins
-        if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
-          marketRows.push(mapped);
+    // Filter to only USDT pairs and map to our format
+    const marketRows: MarketRow[] = [];
+    for (const ticker of tickers) {
+      if (ticker.symbol.toUpperCase().endsWith('-USDT')) {
+        try {
+          const mapped = mapKuCoinToMarketRow(ticker);
+          // Only include if it's one of our supported coins
+          if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
+            marketRows.push(mapped);
+          }
+        } catch (mappingError) {
+          // Skip individual coin mapping errors to prevent breaking the whole fallback
+          console.warn('[coingecko] Failed to map KuCoin ticker:', ticker.symbol, mappingError);
+          continue;
         }
-      } catch (mappingError) {
-        // Skip individual coin mapping errors to prevent breaking the whole fallback
-        console.warn('[coingecko] Failed to map KuCoin ticker:', ticker.symbol, mappingError);
-        continue;
-      }
     }
   }
+
+  console.info(`[coingecko] KuCoin: mapped ${marketRows.length} valid USDT pairs`);
 
   // Sort by market cap descending (approximate using volume * price as proxy)
   marketRows.sort((a, b) => {
@@ -660,6 +752,10 @@ async function fetchKuCoinMarkets(): Promise<MarketRow[]> {
   });
 
   return marketRows;
+  } catch (error) {
+    console.error('[coingecko] KuCoin API error:', error);
+    throw error;
+  }
 }
 
 // For detail and chart endpoints, we'll implement basic fallbacks where possible
@@ -808,7 +904,8 @@ async function fetchAlternativeGlobal(): Promise<GlobalData> {
  * CoinGecko → CoinPaprika → Binance → KuCoin
  */
 export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow[]> {
-  return fetchWithFallback(
+  console.info('[coingecko] Fetching catalog markets with fallback chain');
+  const result = await fetchWithFallback(
     // Primary: CoinGecko
     () => cachedFetch<MarketRow[]>(
       `${COINGECKO_BASE}/coins/markets?vs_currency=${vsCurrency}&ids=${listCoins()
@@ -825,6 +922,8 @@ export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow
       () => fetchKuCoinMarkets()
     ]
   );
+  console.info(`[coingecko] Successfully fetched ${result.length} market rows`);
+  return result;
 }
 
 /**
