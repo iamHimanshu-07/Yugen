@@ -242,7 +242,7 @@ function NewsCard({ item }: { item: NewsItem }) {
 
         {/* External link icon */}
         {isExternal && (
-          <span style={{ color: "var(--muted)", fontSize: 18, marginTop: 2, flexShrink: 0 }}>��↗</span>
+          <span style={{ color: "var(--muted)", fontSize: 18, marginTop: 2, flexShrink: 0 }}>↗</span>
         )}
       </div>
     </Link>
