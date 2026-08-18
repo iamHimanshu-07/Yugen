@@ -462,7 +462,7 @@ function mapCoinPaprikaToMarketRow(data: any): MarketRow {
  */
 function mapBinanceToMarketRow(data: any): MarketRow {
   // Binance uses symbols like BTCUSDT, need to extract base asset
-  const symbol = data.symbol.replace('USDT', '');
+  const symbol = data.symbol.toUpperCase().replace('USDT', '');
   const coin = listCoins().find(c => c.symbol === symbol);
 
   return {
@@ -493,7 +493,7 @@ function mapBinanceToMarketRow(data: any): MarketRow {
  * Map KuCoin ticker data to MarketRow format
  */
 function mapKuCoinToMarketRow(data: any): MarketRow {
-  const symbol = data.symbol.replace('-USDT', '');
+  const symbol = data.symbol.toUpperCase().replace('-USDT', '');
   const coin = listCoins().find(c => c.symbol === symbol);
 
   return {
@@ -559,9 +559,15 @@ async function fetchCoinPaprikaMarkets(): Promise<MarketRow[]> {
   // Filter and map to our format
   const marketRows: MarketRow[] = [];
   for (const ticker of tickers) {
-    const coin = listCoins().find(c => c.coingeckoId === ticker.coin_id);
-    if (coin) {
-      marketRows.push(mapCoinPaprikaToMarketRow(ticker));
+    try {
+      const coin = listCoins().find(c => c.coingeckoId === ticker.coin_id);
+      if (coin) {
+        marketRows.push(mapCoinPaprikaToMarketRow(ticker));
+      }
+    } catch (mappingError) {
+      // Skip individual coin mapping errors to prevent breaking the whole fallback
+      console.warn('[coingecko] Failed to map CoinPaprika ticker:', ticker.coin_id, mappingError);
+      continue;
     }
   }
 
@@ -586,11 +592,17 @@ async function fetchBinanceMarkets(): Promise<MarketRow[]> {
   // Filter to only USDT pairs and map to our format
   const marketRows: MarketRow[] = [];
   for (const ticker of tickers) {
-    if (ticker.symbol.endsWith('USDT')) {
-      const mapped = mapBinanceToMarketRow(ticker);
-      // Only include if it's one of our supported coins
-      if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
-        marketRows.push(mapped);
+    if (ticker.symbol.toUpperCase().endsWith('USDT')) {
+      try {
+        const mapped = mapBinanceToMarketRow(ticker);
+        // Only include if it's one of our supported coins
+        if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
+          marketRows.push(mapped);
+        }
+      } catch (mappingError) {
+        // Skip individual coin mapping errors to prevent breaking the whole fallback
+        console.warn('[coingecko] Failed to map Binance ticker:', ticker.symbol, mappingError);
+        continue;
       }
     }
   }
@@ -620,11 +632,17 @@ async function fetchKuCoinMarkets(): Promise<MarketRow[]> {
   // Filter to only USDT pairs and map to our format
   const marketRows: MarketRow[] = [];
   for (const ticker of tickers) {
-    if (ticker.symbol.endsWith('-USDT')) {
-      const mapped = mapKuCoinToMarketRow(ticker);
-      // Only include if it's one of our supported coins
-      if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
-        marketRows.push(mapped);
+    if (ticker.symbol.toUpperCase().endsWith('-USDT')) {
+      try {
+        const mapped = mapKuCoinToMarketRow(ticker);
+        // Only include if it's one of our supported coins
+        if (listCoins().some(c => c.symbol === mapped.symbol.toUpperCase())) {
+          marketRows.push(mapped);
+        }
+      } catch (mappingError) {
+        // Skip individual coin mapping errors to prevent breaking the whole fallback
+        console.warn('[coingecko] Failed to map KuCoin ticker:', ticker.symbol, mappingError);
+        continue;
       }
     }
   }
