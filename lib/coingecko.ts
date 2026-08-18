@@ -291,11 +291,59 @@ async function fetchFromKuCoin<T>(endpoint: string): Promise<T> {
 // ---------- Fallback Wrapper ----------
 
 /**
- * Try multiple APIs in order until one succeeds
+ * Try multiple APIs in parallel and return the first successful result
+ * This ensures the application never fails if at least one API is working
+ * @param primaryFn Function to call primary API (CoinGecko)
+ * @param fallbackFns Array of fallback functions to try in parallel
+ */
+async function fetchWithFallbackParallel<T>(
+  primaryFn: () => Promise<T>,
+  fallbackFns: Array<() => Promise<T>>
+): Promise<T> {
+  // Create array of all API functions (primary + fallbacks)
+  const allFns = [
+    { name: 'CoinGecko', fn: primaryFn },
+    { name: 'CoinPaprika', fn: fallbackFns[0] },
+    { name: 'Binance', fn: fallbackFns[1] },
+    { name: 'KuCoin', fn: fallbackFns[2] }
+  ].filter((_, index) => index < fallbackFns.length + 1); // Safety check
+
+  // Execute all APIs in parallel
+  const promises = allFns.map(({ name, fn }) =>
+    fn().then(
+      result => ({ success: true, result, name }),
+      error => ({ success: false, error, name })
+    )
+  );
+
+  // Wait for all to settle
+  const results = await Promise.all(promises);
+
+  // Find the first successful result
+  const successfulResult = results.find(r => r.success);
+  if (successfulResult) {
+    if (successfulResult.name !== 'CoinGecko') {
+      console.info(`[coingecko] Successfully fetched data from ${successfulResult.name} (fallback)`);
+    }
+    return successfulResult.result;
+  }
+
+  // If all failed, collect all errors and throw a combined error
+  const errors = results
+    .filter(r => !r.success)
+    .map(r => `${r.name}: ${(r.error as Error)?.message || r.error}`)
+    .join('; ');
+
+  console.warn('[coingecko] All APIs failed:', errors);
+  throw new Error(`All cryptocurrency APIs failed. Errors: ${errors}`);
+}
+
+/**
+ * Try multiple APIs in order until one succeeds (original sequential version kept for specific use cases)
  * @param primaryFn Function to call primary API (CoinGecko)
  * @param fallbackFns Array of fallback functions to try in order
  */
-async function fetchWithFallback<T>(
+export async function fetchWithFallback<T>(
   primaryFn: () => Promise<T>,
   fallbackFns: Array<() => Promise<T>>
 ): Promise<T> {
@@ -907,12 +955,13 @@ async function fetchAlternativeGlobal(): Promise<GlobalData> {
 // ---------- Public API with Fallback ----------
 
 /**
- * Fetch all 14 catalog coins' market data with fallback chain:
- * CoinGecko → CoinPaprika → Binance → KuCoin
+ * Fetch all 14 catalog coins' market data with parallel fallback:
+ * Tries CoinGecko, CoinPaprika, Binance, and KuCoin simultaneously
+ * Returns data from the first successful API
  */
 export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow[]> {
-  console.info('[coingecko] Fetching catalog markets with fallback chain');
-  const result = await fetchWithFallback(
+  console.info('[coingecko] Fetching catalog markets with parallel fallback');
+  const result = await fetchWithFallbackParallel(
     // Primary: CoinGecko
     () => cachedFetch<MarketRow[]>(
       `${COINGECKO_BASE}/coins/markets?vs_currency=${vsCurrency}&ids=${listCoins()
@@ -934,10 +983,12 @@ export async function fetchCatalogMarkets(vsCurrency = "usd"): Promise<MarketRow
 }
 
 /**
- * Fetch one coin's full detail object with fallback.
+ * Fetch one coin's full detail object with parallel fallback:
+ * Tries CoinGecko, CoinPaprika, and simulated fallbacks simultaneously
+ * Returns data from the first successful API
  */
 export async function fetchCoinDetail(id: string): Promise<CoinDetail> {
-  return fetchWithFallback(
+  return fetchWithFallbackParallel(
     // Primary: CoinGecko
     () => cachedFetch<CoinDetail>(
       `${COINGECKO_BASE}/coins/${id}?localization=false&tickers=false&community_data=true&developer_data=true&sparkline=true`,
@@ -956,10 +1007,12 @@ export async function fetchCoinDetail(id: string): Promise<CoinDetail> {
 }
 
 /**
- * Fetch global cryptocurrency data (market cap, volumes, dominance) with fallback.
+ * Fetch global cryptocurrency data (market cap, volumes, dominance) with parallel fallback:
+ * Tries CoinGecko and alternative sources simultaneously
+ * Returns data from the first successful API
  */
 export async function fetchGlobal(): Promise<GlobalData> {
-  return fetchWithFallback(
+  return fetchWithFallbackParallel(
     // Primary: CoinGecko
     () => cachedFetch<GlobalData>(`${COINGECKO_BASE}/global`, 60),
     // Fallbacks
@@ -974,14 +1027,15 @@ export async function fetchGlobal(): Promise<GlobalData> {
 }
 
 /**
- * Fetch market chart for a coin over `days` days with fallback.
+ * Fetch market chart for a coin over `days` days with parallel fallback.
  * CoinGecko automatically down-samples to a sensible granularity for the range:
  *   1     -> ~5min candles
  *   7-30  -> hourly
  *   30-365-> daily
+ * Tries CoinGecko and CoinPaprika simultaneously for better reliability.
  */
 export async function fetchMarketChart(id: string, days: number): Promise<MarketChart> {
-  return fetchWithFallback(
+  return fetchWithFallbackParallel(
     // Primary: CoinGecko
     () => cachedFetch<MarketChart>(
       `${COINGECKO_BASE}/coins/${id}/market_chart?vs_currency=usd&days=${days}`

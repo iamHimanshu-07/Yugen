@@ -89,7 +89,7 @@ export function CoinHeader({ coin, detail, error }: CoinHeaderProps) {
               fontWeight: 600,
             }}
           >
-            ⚠ Live data unavailable
+            ! Live data unavailable
           </div>
         )}
       </div>

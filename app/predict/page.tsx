@@ -138,7 +138,7 @@ export default async function PredictPage() {
             {/* Disclaimer */}
             <section style={{ marginBottom: 32 }}>
               <div className="card" style={{ borderColor: "rgba(255,106,26,0.5)", background: "rgba(255,106,26,0.05)", padding: 20 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>��⚠ Important Disclaimer</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>Important Disclaimer</div>
                 <div style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.7 }}>
                   {prediction.disclaimer}
                   <br /><br />
