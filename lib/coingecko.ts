@@ -308,19 +308,23 @@ async function fetchWithFallbackParallel<T>(
     { name: 'KuCoin', fn: fallbackFns[2] }
   ].filter((_, index) => index < fallbackFns.length + 1); // Safety check
 
+  // Define types for our promise results
+  type SuccessResult<T> = { success: true; result: T; name: string };
+  type ErrorResult = { success: false; error: any; name: string };
+
   // Execute all APIs in parallel
   const promises = allFns.map(({ name, fn }) =>
     fn().then(
-      result => ({ success: true, result, name }),
-      error => ({ success: false, error, name })
+      result => ({ success: true, result, name } as SuccessResult<T>),
+      error => ({ success: false, error, name } as ErrorResult)
     )
   );
 
   // Wait for all to settle
-  const results = await Promise.all(promises);
+  const results = await Promise.all<SuccessResult<T> | ErrorResult>(promises);
 
   // Find the first successful result
-  const successfulResult = results.find(r => r.success);
+  const successfulResult = results.find(r => r.success) as SuccessResult<T> | undefined;
   if (successfulResult) {
     if (successfulResult.name !== 'CoinGecko') {
       console.info(`[coingecko] Successfully fetched data from ${successfulResult.name} (fallback)`);
