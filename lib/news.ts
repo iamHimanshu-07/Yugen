@@ -61,10 +61,21 @@ function parseRssDate(dateStr: string): Date {
 }
 
 function parseRssItem(item: any, source: string, domain: string): NewsItem {
+  // Helper to extract content and strip CDATA
+  const extractContent = (content: string): string => {
+    if (!content) return "";
+    // Remove CDATA wrappers if present
+    return content
+      .replace(/<!\[CDATA\[/g, "")
+      .replace(/\]\]>/g, "")
+      .replace(/<[^>]+>/g, "") // Remove any remaining HTML tags
+      .trim();
+  };
+
   return {
     id: `${domain}:${item.guid ?? item.link ?? Math.random().toString(36).slice(2)}`,
-    title: item.title?.replace(/<[^>]+>/g, "") ?? "Untitled",
-    url: item.link ?? "#",
+    title: extractContent(item.title ?? "") || "Untitled",
+    url: extractContent(item.link ?? "") || "#",
     source,
     publishedAt: parseRssDate(item.pubDate ?? item.published ?? item.updated ?? "").toISOString(),
     domain,
@@ -194,14 +205,23 @@ export async function fetchRssFallback(limit = 20): Promise<NewsItem[]> {
  * Returns up to `limit` news items.
  */
 export async function fetchNews(limit = 20): Promise<NewsItem[]> {
+  console.log("[news] fetchNews called with limit:", limit);
   try {
     // Try CryptoPanic first (faster, richer data)
     const cpResult = await tryWithRateLimit("cryptopanic", () => fetchCryptoPanicNews(limit));
-    if (cpResult && cpResult.length > 0) return cpResult;
+    console.log("[news] CryptoPanic result length:", cpResult?.length ?? 0);
+    if (cpResult && cpResult.length > 0) {
+      console.log("[news] returning CryptoPanic result");
+      return cpResult;
+    }
 
     // Fallback to RSS
-    return fetchRssFallback(limit);
+    console.log("[news] falling back to RSS");
+    const rssResult = await fetchRssFallback(limit);
+    console.log("[news] RSS result length:", rssResult.length);
+    return rssResult;
   } catch (error) {
+    console.error("[news] fetchNews error:", error);
     if (isLocalDev()) {
       console.warn("[news] fetchNews failed, using mock:", error instanceof Error ? error.message : String(error));
       return generateMockNews(limit);
