@@ -13,7 +13,7 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Markets — Yugen",
-  description: "The 14 coins that actually matter. Live market cap, price, 24h change and 7-day sparkline.",
+  description: "The 14 coins that actually matter. Live market data including rank, price, changes, volume and supply.",
 };
 
 export default async function MarketsPage() {
@@ -40,6 +40,13 @@ export default async function MarketsPage() {
       change24h: cg?.price_change_percentage_24h ?? null,
       marketCap: cg?.market_cap ?? null,
       volume24h: cg?.total_volume ?? null,
+      marketCapRank: cg?.market_cap_rank ?? null,
+      high24h: cg?.high_24h ?? null,
+      low24h: cg?.low_24h ?? null,
+      priceChangePercentage7d: cg?.price_change_percentage_7d ?? null,
+      priceChangePercentage30d: cg?.price_change_percentage_30d ?? null,
+      priceChangePercentage1y: cg?.price_change_percentage_1y ?? null,
+      circulatingSupply: cg?.circulating_supply ?? null,
       sparkline: cg?.sparkline_in_7d?.price ?? [],
       lastUpdated: cg?.last_updated ?? null,
     };

@@ -86,7 +86,7 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
           />
         )}
 
-        {/* 4-KPI strip */}
+        {/* Enhanced 4-KPI strip with more data points */}
         <div
           style={{
             display: "grid",
@@ -106,13 +106,13 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
             neutral
           />
           <KpiBlock
-            label="24h high"
-            value={detail ? fmtUSD(detail.market_data.high_24h.usd, 2) : "—"}
+            label="All-time high"
+            value={detail ? fmtUSD(detail.ath.usd, 2) : "—"}
             neutral
           />
           <KpiBlock
-            label="24h low"
-            value={detail ? fmtUSD(detail.market_data.low_24h.usd, 2) : "—"}
+            label="All-time low"
+            value={detail ? fmtUSD(detail.atl.usd, 2) : "—"}
             neutral
           />
         </div>
@@ -165,13 +165,36 @@ function SupplyCard({ detail, symbol }: { detail: any; symbol: string }) {
   const circ = detail?.market_data?.circulating_supply ?? null;
   const total = detail?.market_data?.total_supply ?? null;
   const max = detail?.market_data?.max_supply ?? null;
+
+  // Calculate supply ratios
+  const circulatingRatio = total && circ ? ((circ / total) * 100) : null;
+  const maxRatio = max && circ ? ((circ / max) * 100) : null;
+
   return (
     <div className="metric-card">
       <div className="lbl">Supply</div>
       <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
         <SupplyRow label="Circulating" value={circ} sym={symbol} />
-        <SupplyRow label="Total" value={total} sym={symbol} />
-        <SupplyRow label="Max" value={max} sym={symbol} />
+        {total !== null && (
+          <>
+            <SupplyRow label="Total" value={total} sym={symbol} />
+            {circulatingRatio !== null && (
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: -4 }}>
+                {circulatingRatio.toFixed(1)}% of total
+              </div>
+            )}
+          </>
+        )}
+        {max !== null && (
+          <>
+            <SupplyRow label="Max" value={max} sym={symbol} />
+            {maxRatio !== null && (
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: -4 }}>
+                {maxRatio.toFixed(1)}% of max
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

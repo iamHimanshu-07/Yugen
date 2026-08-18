@@ -19,6 +19,13 @@ export interface CatalogItem {
   change24h: number | null;
   marketCap: number | null;
   volume24h: number | null;
+  marketCapRank: number | null;
+  high24h: number | null;
+  low24h: number | null;
+  priceChangePercentage7d: number | null;
+  priceChangePercentage30d: number | null;
+  priceChangePercentage1y: number | null;
+  circulatingSupply: number | null;
   sparkline: number[];
   lastUpdated: string | null;
 }
@@ -154,9 +161,16 @@ export function CatalogGrid({ items }: { items: CatalogItem[] }) {
                   <span style={{ marginLeft: 8, color: "var(--dim)", fontWeight: 500 }}>· {c.kind.toUpperCase()}</span>
                 </div>
               </div>
-              <span className={`pill ${c.change24h == null ? "pill-neutral" : c.change24h >= 0 ? "pill-bull" : "pill-bear"}`}>
-                {fmtPct(c.change24h)}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className={`pill ${c.change24h == null ? "pill-neutral" : c.change24h >= 0 ? "pill-bull" : "pill-bear"}`}>
+                  {fmtPct(c.change24h)}
+                </span>
+                {c.marketCapRank !== null && (
+                  <span style={{ background: "var(--panel-2)", color: "var(--muted)", fontSize: 10, padding: "2px 6px", borderRadius: 4 }}>
+                    #{c.marketCapRank}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="price mono">
@@ -165,9 +179,39 @@ export function CatalogGrid({ items }: { items: CatalogItem[] }) {
               )}
             </div>
 
-            <div style={{ marginTop: 6, color: "var(--muted)", fontSize: 12 }}>
-              Cap {fmtBigUSD(c.marketCap)}
-              {" · "}Vol {c.volume24h ? `${(c.volume24h / 1e9).toFixed(2)}B` : "—"}
+            <div style={{ marginTop: 6, color: "var(--muted)", fontSize: 11 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>Cap {fmtBigUSD(c.marketCap)}</span>
+                <span>Vol {c.volume24h ? `${(c.volume24h / 1e9).toFixed(2)}B` : "—"}</span>
+              </div>
+              {c.high24h !== null && c.low24h !== null && (
+                <div style={{ color: "var(--dim)", fontSize: 10 }}>
+                  24h: {fmtUSD(c.low24h)} — {fmtUSD(c.high24h)}
+                </div>
+              )}
+              {c.circulatingSupply !== null && (
+                <div style={{ color: "var(--dim)", fontSize: 10 }}>
+                  Circ {fmtInt(c.circulatingSupply)} {c.symbol.toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              {c.priceChangePercentage7d !== null && (
+                <span style={{ color: pctColor(c.priceChangePercentage7d), fontSize: 10 }}>
+                  7d: {fmtPct(c.priceChangePercentage7d)}
+                </span>
+              )}
+              {c.priceChangePercentage30d !== null && (
+                <span style={{ color: pctColor(c.priceChangePercentage30d), fontSize: 10, marginLeft: 8 }}>
+                  30d: {fmtPct(c.priceChangePercentage30d)}
+                </span>
+              )}
+              {c.priceChangePercentage1y !== null && (
+                <span style={{ color: pctColor(c.priceChangePercentage1y), fontSize: 10, marginLeft: 8 }}>
+                  1y: {fmtPct(c.priceChangePercentage1y)}
+                </span>
+              )}
             </div>
 
             <div style={{ marginTop: 14, height: 56, borderRadius: 10, overflow: "hidden", background: "var(--panel-2)", position: "relative" }}>
