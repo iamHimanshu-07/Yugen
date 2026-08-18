@@ -8,6 +8,17 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { fmtBigUSD, fmtPct, fmtUSD, fmtInt, pctColor } from "@/lib/utils";
 
+/**
+ * Check if data is considered "live" (updated within the last 2 minutes)
+ */
+function isLiveData(timestampString: string): boolean {
+  if (!timestampString) return false;
+  const lastUpdated = new Date(timestampString).getTime();
+  const now = Date.now();
+  // Consider data live if updated within the last 2 minutes (120000ms)
+  return (now - lastUpdated) < 120000;
+}
+
 export interface CatalogItem {
   symbol: string;
   name: string;
@@ -219,7 +230,7 @@ export function CatalogGrid({ items }: { items: CatalogItem[] }) {
             </div>
 
             <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", color: "var(--dim)", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-              <span>7d · live</span>
+              <span>7d · {c.lastUpdated ? isLiveData(c.lastUpdated) ? 'live' : 'delayed' : '—'}</span>
               <span>Open →</span>
             </div>
           </Link>
