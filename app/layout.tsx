@@ -119,8 +119,8 @@ async function SiteFooter() {
           <h4>Legal</h4>
           <ul>
             <li><a href="/about#where-it-goes">Disclaimer</a></li>
-            <li><a href="/about">Terms</a></li>
-            <li><a href="/about">Privacy</a></li>
+            <li><a href="/about#what-it-is">Terms</a></li>
+            <li><a href="/about#how-its-built">Privacy</a></li>
           </ul>
         </div>
       </div>

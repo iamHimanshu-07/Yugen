@@ -560,13 +560,14 @@ async function fetchCoinPaprikaMarkets(): Promise<MarketRow[]> {
   const marketRows: MarketRow[] = [];
   for (const ticker of tickers) {
     try {
-      const coin = listCoins().find(c => c.coingeckoId === ticker.coin_id);
+      // Match by symbol instead of ID for better cross-API compatibility
+      const coin = listCoins().find(c => c.symbol.toUpperCase() === ticker.symbol.toUpperCase());
       if (coin) {
         marketRows.push(mapCoinPaprikaToMarketRow(ticker));
       }
     } catch (mappingError) {
       // Skip individual coin mapping errors to prevent breaking the whole fallback
-      console.warn('[coingecko] Failed to map CoinPaprika ticker:', ticker.coin_id, mappingError);
+      console.warn('[coingecko] Failed to map CoinPaprika ticker:', ticker.symbol, mappingError);
       continue;
     }
   }
