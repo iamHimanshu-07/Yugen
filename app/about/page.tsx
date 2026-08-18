@@ -159,8 +159,14 @@ function Section({
   title: string;
   children: React.ReactNode;
 }) {
+  // Generate ID from eyebrow for anchor links
+  const sectionId = eyebrow
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
   return (
-    <section className="section-tight">
+    <section className="section-tight" id={sectionId}>
       <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 56 }} className="md:grid-cols-1">
         <div>
           <div className="eyebrow" style={{ marginBottom: 14 }}>{eyebrow}</div>
