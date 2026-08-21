@@ -4,6 +4,9 @@
  * Receives a list of [timestamp_ms, price] points + the selected range label
  * and renders an interactive area chart with crosshair + tooltip.
  *
+ * Optional overlays: SMA(7/30), EMA(12/26), RSI(14). All indicator math is
+ * computed client-side over the same point series — no extra fetches.
+ *
  * The chart re-fetches on range change via /api/chart/[id]?days=N which is
  * a Route Handler that proxies to CoinGecko with our server-side caching.
  */
@@ -12,6 +15,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { fmtPct, fmtUSD } from "@/lib/utils";
+import { sma, ema, rsi, type IndicatorPoint } from "@/lib/indicators";
 
 // ECharts is ~200KB gzipped — load only on the client.
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
@@ -22,6 +26,8 @@ const RANGES = [
   { label: "1M",  days: 30 },
   { label: "1Y",  days: 365 },
 ];
+
+type IndicatorKey = "sma7" | "sma30" | "ema12" | "ema26" | "rsi14";
 
 export interface PriceChartProps {
   coingeckoId: string;
@@ -34,6 +40,13 @@ export function PriceChart({ coingeckoId, symbol, initialPoints, initialDays }: 
   const [active, setActive] = useState(initialDays);
   const [points, setPoints] = useState<[number, number][]>(initialPoints);
   const [pending, startTransition] = useTransition();
+  const [enabled, setEnabled] = useState<Record<IndicatorKey, boolean>>({
+    sma7: false,
+    sma30: false,
+    ema12: false,
+    ema26: false,
+    rsi14: false,
+  });
 
   // Re-fetch when the user picks a different range.
   useEffect(() => {
@@ -51,11 +64,14 @@ export function PriceChart({ coingeckoId, symbol, initialPoints, initialDays }: 
     };
   }, [active, coingeckoId, initialDays]);
 
-  const option = useMemo(() => buildOption(points, symbol), [points, symbol]);
+  const option = useMemo(() => buildOption(points, symbol, enabled), [points, symbol, enabled]);
 
   const first = points[0]?.[1] ?? 0;
   const last = points[points.length - 1]?.[1] ?? 0;
   const pct = first > 0 ? ((last - first) / first) * 100 : 0;
+
+  const toggle = (key: IndicatorKey) =>
+    setEnabled((e) => ({ ...e, [key]: !e[key] }));
 
   return (
     <div className="card" style={{ padding: 22 }}>
@@ -71,21 +87,65 @@ export function PriceChart({ coingeckoId, symbol, initialPoints, initialDays }: 
             </span>
           </div>
         </div>
-        <div className="range-tabs">
-          {RANGES.map((r) => (
-            <button
-              key={r.label}
-              type="button"
-              className={`range-tab ${active === r.days ? "active" : ""}`}
-              onClick={() => setActive(r.days)}
-              disabled={pending}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div className="range-tabs">
+            {RANGES.map((r) => (
+              <button
+                key={r.label}
+                type="button"
+                className={`range-tab ${active === r.days ? "active" : ""}`}
+                onClick={() => setActive(r.days)}
+                disabled={pending}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <a
+              href={`/api/export/${coingeckoId}?days=${active}&format=csv`}
+              download
+              className="btn btn-ghost btn-sm"
+              aria-label={`Download ${symbol} chart as CSV`}
+              title="Download chart data as CSV"
             >
-              {r.label}
-            </button>
-          ))}
+              CSV
+            </a>
+            <a
+              href={`/api/export/${coingeckoId}?days=${active}&format=json`}
+              download
+              className="btn btn-ghost btn-sm"
+              aria-label={`Download ${symbol} chart as JSON`}
+              title="Download chart data as JSON"
+            >
+              JSON
+            </a>
+          </div>
         </div>
       </div>
-      <div style={{ height: 380, position: "relative" }}>
+
+      {/* Indicator toggles */}
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          flexWrap: "wrap",
+          marginBottom: 12,
+          paddingTop: 4,
+          borderTop: "1px solid rgba(255,255,255,0.04)",
+        }}
+      >
+        <span style={{ color: "var(--muted)", fontSize: 11, letterSpacing: "0.10em", textTransform: "uppercase", fontWeight: 700, alignSelf: "center", marginRight: 4 }}>
+          Indicators
+        </span>
+        <IndicatorPill label="SMA 7"  active={enabled.sma7}  onClick={() => toggle("sma7")}  color="#FF6A1A" />
+        <IndicatorPill label="SMA 30" active={enabled.sma30} onClick={() => toggle("sma30")} color="#F5A623" />
+        <IndicatorPill label="EMA 12" active={enabled.ema12} onClick={() => toggle("ema12")} color="#5AC8FA" />
+        <IndicatorPill label="EMA 26" active={enabled.ema26} onClick={() => toggle("ema26")} color="#A78BFA" />
+        <IndicatorPill label="RSI 14" active={enabled.rsi14} onClick={() => toggle("rsi14")} color="#16C784" />
+      </div>
+
+      <div style={{ height: enabled.rsi14 ? 460 : 380, position: "relative", transition: "height 200ms ease" }}>
         {pending && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontSize: 13, zIndex: 2 }}>
             Loading…
@@ -97,7 +157,29 @@ export function PriceChart({ coingeckoId, symbol, initialPoints, initialDays }: 
   );
 }
 
-function buildOption(points: [number, number][], symbol: string) {
+function IndicatorPill({ label, active, onClick, color }: { label: string; active: boolean; onClick: () => void; color: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className="range-tab"
+      style={{
+        opacity: active ? 1 : 0.55,
+        color: active ? color : "var(--muted)",
+        borderColor: active ? color : "rgba(255,255,255,0.08)",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function buildOption(
+  points: [number, number][],
+  symbol: string,
+  enabled: Record<IndicatorKey, boolean>,
+) {
   const xs = points.map(([t]) => t);
   const ys = points.map(([, p]) => p);
   const first = ys[0] ?? 0;
@@ -106,18 +188,69 @@ function buildOption(points: [number, number][], symbol: string) {
   const lineColor = isUp ? "#16C784" : "#EA3943";
   const areaColor = isUp ? "rgba(22,199,132,0.18)" : "rgba(234,57,67,0.18)";
 
-  // Determine nice tick formatting based on span.
-  const spanMs = xs.length > 1 ? xs[xs.length - 1] - xs[0] : 0;
-  const day = 86_400_000;
-  const dateFmt =
-    spanMs <= day * 2 ? "HH:mm" :
-    spanMs <= day * 14 ? "MMM d" :
-    "MMM d";
+  const hasRsi = enabled.rsi14;
+
+  // Two grids: main price (top 70%) + RSI pane (bottom 22%) with a small gap.
+  const grids = hasRsi
+    ? [
+        { left: 56, right: 20, top: 16,  height: "62%" },
+        { left: 56, right: 20, top: "78%", height: "16%" },
+      ]
+    : [{ left: 56, right: 20, top: 16, bottom: 36 }];
+
+  // Indicator series (only compute when their toggle is on).
+  const sma7Series  = enabled.sma7  ? seriesFromIndicator(sma(points, 7),  "SMA 7",  "#FF6A1A") : null;
+  const sma30Series = enabled.sma30 ? seriesFromIndicator(sma(points, 30), "SMA 30", "#F5A623") : null;
+  const ema12Series = enabled.ema12 ? seriesFromIndicator(ema(points, 12), "EMA 12", "#5AC8FA") : null;
+  const ema26Series = enabled.ema26 ? seriesFromIndicator(ema(points, 26), "EMA 26", "#A78BFA") : null;
+  const rsiSeries   = enabled.rsi14 ? seriesFromIndicator(rsi(points, 14), "RSI 14", "#16C784") : null;
+
+  const xAxes = hasRsi
+    ? [
+        { gridIndex: 0, type: "time", data: xs, axisLabel: { color: "#8A93A6", fontSize: 11, fontFamily: "JetBrains Mono, monospace", hideOverlap: true }, axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }, axisTick: { show: false }, splitLine: { show: false } },
+        { gridIndex: 1, type: "time", data: xs, axisLabel: { show: false }, axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }, axisTick: { show: false }, splitLine: { show: false } },
+      ]
+    : [{
+        type: "time",
+        data: xs,
+        axisLabel: {
+          color: "#8A93A6",
+          fontSize: 11,
+          fontFamily: "JetBrains Mono, monospace",
+          formatter: (val: number) => {
+            const d = new Date(val);
+            return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).replace(/:\d\d$/, "");
+          },
+          hideOverlap: true,
+        },
+        axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+        axisTick: { show: false },
+        splitLine: { show: false },
+      }];
+
+  const yAxes = hasRsi
+    ? [
+        { gridIndex: 0, type: "value", scale: true, axisLabel: { color: "#8A93A6", fontSize: 11, fontFamily: "JetBrains Mono, monospace", formatter: (val: number) => val >= 1000 ? `$${(val / 1000).toFixed(1)}k` : `$${val.toFixed(val < 1 ? 4 : 2)}` }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } } },
+        { gridIndex: 1, type: "value", min: 0, max: 100, interval: 50, axisLabel: { color: "#8A93A6", fontSize: 10, fontFamily: "JetBrains Mono, monospace" }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } } },
+      ]
+    : [{
+        type: "value",
+        scale: true,
+        axisLabel: {
+          color: "#8A93A6",
+          fontSize: 11,
+          fontFamily: "JetBrains Mono, monospace",
+          formatter: (val: number) => val >= 1000 ? `$${(val / 1000).toFixed(1)}k` : `$${val.toFixed(val < 1 ? 4 : 2)}`,
+        },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } },
+      }];
 
   return {
     backgroundColor: "transparent",
     animation: false,
-    grid: { left: 56, right: 20, top: 16, bottom: 36 },
+    grid: grids,
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(17,20,27,0.96)",
@@ -127,56 +260,32 @@ function buildOption(points: [number, number][], symbol: string) {
       padding: [8, 12],
       axisPointer: {
         type: "cross",
+        link: hasRsi ? [{ xAxisIndex: "all" }] : undefined,
         lineStyle: { color: "rgba(255,106,26,0.45)", width: 1 },
         crossStyle: { color: "rgba(255,106,26,0.45)", width: 1 },
         label: { backgroundColor: "#FF6A1A", color: "#0A0B0F", fontWeight: 700 },
       },
-      formatter: (params: { axisValue: number; data: number }[]) => {
-        const p = params[0];
-        const date = new Date(p.axisValue);
-        return `
-          <div style="font-weight:700;font-size:11px;color:#8A93A6;letter-spacing:0.06em;text-transform:uppercase;">${date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
-          <div style="margin-top:4px;font-family:JetBrains Mono,monospace;font-size:16px;font-weight:700;">$${p.data.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</div>
-        `;
+      formatter: (params: { axisValue: number; data: number; seriesName: string; marker: string }[]) => {
+        const date = new Date(params[0].axisValue);
+        const head = `<div style="font-weight:700;font-size:11px;color:#8A93A6;letter-spacing:0.06em;text-transform:uppercase;">${date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>`;
+        const rows = params.map((p) => {
+          const v = p.data;
+          const formatted = typeof v === "number"
+            ? (p.seriesName.startsWith("RSI") ? v.toFixed(1) : `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`)
+            : "—";
+          return `<div style="margin-top:4px;font-family:JetBrains Mono,monospace;font-size:13px;display:flex;gap:8px;align-items:center;"><span>${p.marker}</span><span style="color:#8A93A6;min-width:64px;">${p.seriesName}</span><span style="font-weight:700;margin-left:auto;">${formatted}</span></div>`;
+        }).join("");
+        return head + rows;
       },
     },
-    xAxis: {
-      type: "time",
-      data: xs,
-      axisLabel: {
-        color: "#8A93A6",
-        fontSize: 11,
-        fontFamily: "JetBrains Mono, monospace",
-        formatter: (val: number) => {
-          const d = new Date(val);
-          return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).replace(/:\d\d$/, "");
-        },
-        hideOverlap: true,
-      },
-      axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
-      axisTick: { show: false },
-      splitLine: { show: false },
-    },
-    yAxis: {
-      type: "value",
-      scale: true,
-      axisLabel: {
-        color: "#8A93A6",
-        fontSize: 11,
-        fontFamily: "JetBrains Mono, monospace",
-        formatter: (val: number) => {
-          if (val >= 1000) return `$${(val / 1000).toFixed(1)}k`;
-          return `$${val.toFixed(val < 1 ? 4 : 2)}`;
-        },
-      },
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } },
-    },
+    xAxis: xAxes,
+    yAxis: yAxes,
     series: [
       {
         type: "line",
         name: symbol,
+        xAxisIndex: hasRsi ? 0 : undefined,
+        yAxisIndex: hasRsi ? 0 : undefined,
         data: points.map(([t, p]) => [t, p]),
         smooth: true,
         symbol: "none",
@@ -193,6 +302,51 @@ function buildOption(points: [number, number][], symbol: string) {
         },
         emphasis: { focus: "series" },
       },
+      ...(sma7Series  ? [{ ...sma7Series,  xAxisIndex: hasRsi ? 0 : undefined, yAxisIndex: hasRsi ? 0 : undefined }] : []),
+      ...(sma30Series ? [{ ...sma30Series, xAxisIndex: hasRsi ? 0 : undefined, yAxisIndex: hasRsi ? 0 : undefined }] : []),
+      ...(ema12Series ? [{ ...ema12Series, xAxisIndex: hasRsi ? 0 : undefined, yAxisIndex: hasRsi ? 0 : undefined }] : []),
+      ...(ema26Series ? [{ ...ema26Series, xAxisIndex: hasRsi ? 0 : undefined, yAxisIndex: hasRsi ? 0 : undefined }] : []),
+      ...(rsiSeries
+        ? [{
+            ...rsiSeries,
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            type: "line",
+            lineStyle: { color: "#16C784", width: 1.5 },
+            symbol: "none",
+            smooth: false,
+            markLine: hasRsi ? {
+              silent: true,
+              symbol: "none",
+              lineStyle: { color: "rgba(234,57,67,0.4)", type: "dashed" },
+              data: [
+                { yAxis: 70, label: { show: false } },
+                { yAxis: 30, label: { show: false } },
+              ],
+            } : undefined,
+          }]
+        : []),
     ],
+  };
+}
+
+/**
+ * Turn an IndicatorPoint series into an ECharts line series.
+ * IndicatorPoint is [ts, value | null]; we drop null entries so ECharts
+ * doesn't try to plot a gap as zero.
+ */
+function seriesFromIndicator(series: IndicatorPoint[], name: string, color: string) {
+  return {
+    name,
+    type: "line" as const,
+    data: series
+      .filter(([, v]) => v !== null)
+      .map(([t, v]) => [t, v as number]),
+    symbol: "none",
+    smooth: true,
+    lineStyle: { color, width: 1.5, type: "solid" as const },
+    emphasis: { focus: "series" as const },
+    // Keep indicator lines below the price area in the stacking order.
+    z: 2,
   };
 }

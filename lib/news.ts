@@ -10,7 +10,7 @@
  */
 
 import { withRateLimit, tryWithRateLimit } from "./rate-limit";
-import { Caches } from "./cache";
+import { Caches, singleFlight } from "./cache";
 import { hashString } from "./utils";
 
 const CRYPTOPANIC_BASE = "https://cryptopanic.com/api/v1";
@@ -124,41 +124,44 @@ async function fetchRssFeed(url: string, source: string, domain: string): Promis
 /**
  * Fetch latest posts from CryptoPanic public API.
  * Returns normalized NewsItem array.
+ *
+ * Wrapped in singleFlight so concurrent callers (e.g. 14 coin pages
+ * prerendering in parallel + the RSS feed endpoint) share one upstream
+ * request instead of fanning out.
  */
 export async function fetchCryptoPanicNews(limit = 20): Promise<NewsItem[]> {
-  const cached = Caches.news.get(NEWS_KEY);
-  if (cached) return cached.slice(0, limit);
-
   const url = `${CRYPTOPANIC_BASE}/posts/?public=true&filter=hot`;
 
-  try {
-    const data = await withRateLimit("cryptopanic", async () => {
-      const res = await fetch(url, {
-        headers: { Accept: "application/json", "User-Agent": "yugen/1.0" },
-        next: { revalidate: REVALIDATE_SECONDS },
-        signal: AbortSignal.timeout(8000),
+  const items = await singleFlight(Caches.news, NEWS_KEY, async () => {
+    try {
+      const data = await withRateLimit("cryptopanic", async () => {
+        const res = await fetch(url, {
+          headers: { Accept: "application/json", "User-Agent": "yugen/1.0" },
+          next: { revalidate: REVALIDATE_SECONDS },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!res.ok) throw new Error(`CryptoPanic ${res.status}`);
+        return (await res.json()) as { results: any[] };
       });
-      if (!res.ok) throw new Error(`CryptoPanic ${res.status}`);
-      return (await res.json()) as { results: any[] };
-    });
 
-    const items: NewsItem[] = (data.results ?? []).slice(0, limit).map((p) => ({
-      id: `cp:${p.id}`,
-      title: p.title,
-      url: p.url,
-      source: p.domain ?? "CryptoPanic",
-      publishedAt: p.published_at,
-      currencies: p.currencies?.map((c: any) => c.code) ?? [],
-      kind: p.kind,
-      domain: p.domain,
-    }));
+      return (data.results ?? []).map((p) => ({
+        id: `cp:${p.id}`,
+        title: p.title,
+        url: p.url,
+        source: p.domain ?? "CryptoPanic",
+        publishedAt: p.published_at,
+        currencies: p.currencies?.map((c: any) => c.code) ?? [],
+        kind: p.kind,
+        domain: p.domain,
+      }));
+    } catch {
+      // signal "fall through to RSS" without caching the failure
+      return null;
+    }
+  });
 
-    Caches.news.set(NEWS_KEY, items);
-    return items;
-  } catch {
-    // Fall through to RSS fallback
-    return fetchRssFallback(limit);
-  }
+  if (items === null) return fetchRssFallback(limit);
+  return (items as NewsItem[]).slice(0, limit);
 }
 
 /**
@@ -166,38 +169,28 @@ export async function fetchCryptoPanicNews(limit = 20): Promise<NewsItem[]> {
  * Used when CryptoPanic is unavailable or rate limited.
  */
 export async function fetchRssFallback(limit = 20): Promise<NewsItem[]> {
-  try {
-    const cacheKey = `${RSS_KEY_PREFIX}all`;
-    const cached = Caches.news.get(cacheKey);
-    if (cached) return cached.slice(0, limit);
+  const cacheKey = `${RSS_KEY_PREFIX}all`;
 
+  const sorted = await singleFlight(Caches.news, cacheKey, async () => {
     const allItems: NewsItem[] = [];
-
-    // Fetch all feeds in parallel
     const results = await Promise.all(
       RSS_FEEDS.map((feed) => fetchRssFeed(feed.url, feed.name, feed.domain)),
     );
-
-    for (const items of results) {
-      allItems.push(...items);
-    }
-
-    // Sort by date desc, dedupe by title similarity
-    const sorted = allItems
+    for (const items of results) allItems.push(...items);
+    return allItems
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
       .filter((item, idx, arr) =>
         idx === 0 || !arr[idx - 1].title.toLowerCase().includes(item.title.toLowerCase().slice(0, 30)),
       );
-
-    Caches.news.set(cacheKey, sorted);
-    return sorted.slice(0, limit);
-  } catch (error) {
+  }).catch((error) => {
     if (isLocalDev()) {
       console.warn("[news] fetchRssFallback failed, using mock:", error instanceof Error ? error.message : String(error));
       return generateMockNews(limit);
     }
     throw error;
-  }
+  });
+
+  return (sorted as NewsItem[]).slice(0, limit);
 }
 
 /**

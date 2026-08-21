@@ -20,13 +20,14 @@ export function TopNav() {
         </Link>
         <nav className="topnav-links">
           <Link href="/markets" className="topnav-link">Markets <span className="pill pill-muted" style={{ marginLeft: 4 }}>{CATALOG_SIZE}</span></Link>
+          <Link href="/compare" className="topnav-link">Compare</Link>
           <Link href="/onchain" className="topnav-link">On-Chain</Link>
           <Link href="/news" className="topnav-link">News</Link>
           <Link href="/predict" className="topnav-link">Prediction</Link>
           <Link href="/about" className="topnav-link">About</Link>
           <Link href="/#how" className="topnav-link">How it works</Link>
           <Link href="https://github.com/iamHimanshu-07/Yugen" target="_blank" rel="noopener" className="topnav-link">
-            GitHub ↗
+            GitHub �
           </Link>
         </nav>
         <div style={{ display: "flex", gap: 8 }}>

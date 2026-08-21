@@ -162,6 +162,62 @@ export function createCache<T>(options: CacheOptions<T>): Cache<T> {
   return new Cache<T>(options);
 }
 
+/* ============================================================
+ * singleFlight — dedupe concurrent in-flight requests.
+ *
+ * During a cold cache (e.g. 14 coin pages prerendering in parallel,
+ * /feed.xml, /api/news, /api/chart at once), many callers race for the
+ * same upstream URL. Without dedup, they all hit CoinGecko / CryptoPanic
+ * simultaneously — burning rate limits and triggering 429s.
+ *
+ * The pattern: stash the in-flight Promise in a Map keyed by URL. The
+ * first caller launches the fetch; everyone else awaits the same Promise.
+ * On settle (success or failure), delete the entry so the next cold
+ * cache kicks off a fresh fetch.
+ *
+ * Combined with TTL+SWR caching, this gives:
+ *   - Single upstream hit per cache window during fan-out
+ *   - Stale-while-revalidate mean concurrent callers never see a miss
+ *   - Failures don't poison the cache (we don't write to `cache` on reject)
+ * ============================================================ */
+const inflight = new Map<string, Promise<unknown>>();
+
+export async function singleFlight<T>(
+  cache: Cache<T>,
+  key: string,
+  fetcher: () => Promise<T | null>,
+): Promise<T | null> {
+  // 1. Cache hit — return immediately.
+  const cached = cache.get(key);
+  if (cached !== undefined) return cached;
+
+  // 2. Already in flight — share the promise.
+  const existing = inflight.get(key);
+  if (existing) return existing as Promise<T | null>;
+
+  // 3. New fetch — track it, then unwrap.
+  const promise = (async () => {
+    try {
+      const value = await fetcher();
+      if (value !== null && value !== undefined) cache.set(key, value as T);
+      return value as T | null;
+    } finally {
+      inflight.delete(key);
+    }
+  })();
+  inflight.set(key, promise);
+  return promise;
+}
+
+/**
+ * Test/debug: snapshot of in-flight keys (size only — promises are not
+ * serializable). Useful for `gain` diagnostics and for asserting that
+ * a fan-out finished draining.
+ */
+export function singleFlightInflightSize(): number {
+  return inflight.size;
+}
+
 /** Pre-configured caches for Yugen's data types. */
 export const Caches = {
   /** Market catalog — 60s fresh, 120s stale, 50 entries. */

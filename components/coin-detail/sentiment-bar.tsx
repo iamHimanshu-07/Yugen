@@ -1,22 +1,25 @@
 /**
- * sentiment-bar.tsx — server component, renders the mock 80/20 sentiment card.
+ * sentiment-bar.tsx — server component, renders the sentiment card.
  *
- * Pure presentational. The actual Sentiment object comes from the server.
+ * Accepts the RealSentiment shape (which is a superset of Sentiment) so
+ * we can label the source pill correctly: "OPEN DATA" when real data is
+ * available, "MOCK" when falling back to the deterministic mock.
  */
 import { fmtInt } from "@/lib/utils";
-import type { Sentiment } from "@/lib/sentiment";
+import type { RealSentiment } from "@/lib/sentiment-real";
 
-export function SentimentBar({ sentiment }: { sentiment: Sentiment }) {
+export function SentimentBar({ sentiment }: { sentiment: RealSentiment }) {
   const bull = sentiment.bullishPercent;
   const bear = 100 - bull;
+  const isReal = sentiment.source === "cryptopanic";
   return (
     <div className="card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.02em" }}>Community sentiment</div>
           <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>
-            <span className="src-pill" style={{ marginRight: 8 }}>OPEN DATA</span>
-            Last 7 days · {fmtInt(sentiment.totalVotes)} votes
+            <span className="src-pill" style={{ marginRight: 8 }}>{isReal ? "OPEN DATA" : "MOCK"}</span>
+            {isReal ? "CryptoPanic · " : "Community signal · "}Last 7 days · {fmtInt(sentiment.totalVotes)} {isReal ? "headlines" : "votes"}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>

@@ -30,6 +30,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
+  alternates: {
+    types: {
+      "application/rss+xml": [
+        { url: "https://yugen-xi.vercel.app/feed.xml", title: "Yugen — Latest crypto news" },
+      ],
+    },
+  },
   openGraph: {
     title: "Yugen" ,
     description:
@@ -104,6 +111,7 @@ async function SiteFooter() {
           <ul>
             <li><a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko ↗</a></li>
             <li><a href="https://www.reddit.com" target="_blank" rel="noopener">Reddit ↗</a></li>
+            <li><a href="/feed.xml">RSS feed</a></li>
             <li><a href="/sitemap.xml">Sitemap</a></li>
           </ul>
         </div>

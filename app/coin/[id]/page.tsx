@@ -13,7 +13,7 @@ import {
   type MarketChart,
 } from "@/lib/coingecko";
 import { getCoinByGeckoId, listCoins } from "@/lib/coins";
-import { mockSentiment } from "@/lib/sentiment";
+import { fetchRealSentiment } from "@/lib/sentiment-real";
 import { fetchSocialPosts } from "@/lib/reddit";
 import { fmtUSD, fmtBigUSD, fmtPct, fmtInt, pctColor } from "@/lib/utils";
 import { PriceChart } from "@/components/coin-detail/price-chart";
@@ -58,7 +58,7 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
     loadError = e instanceof Error ? e.message : "Could not load coin data";
   }
 
-  const sentiment = mockSentiment(coin.symbol);
+  const sentiment = await fetchRealSentiment(coin.symbol);
   const usingMock = posts[0]?.source === "mock";
 
   return (

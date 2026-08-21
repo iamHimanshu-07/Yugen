@@ -31,6 +31,7 @@ const COINS: Record<string, Coin> = listCoins().reduce((acc, coin) => {
 
 type Entry<T> = { value: T; expiresAt: number };
 const CACHE = new Map<string, Entry<unknown>>();
+const CACHE_INFLIGHT = new Map<string, Promise<unknown>>();
 
 /**
  * Check if we're running in a local development environment.
@@ -203,6 +204,10 @@ function generateMockMarketChart(id: string, days: number): MarketChart {
 
 /**
  * Enhanced cached fetch with mock fallback for development
+ *
+ * Adds single-flight semantics: when the same URL is requested concurrently
+ * and the cache is cold (e.g. 14 coin pages prerendering in parallel),
+ * callers share one upstream request instead of fanning out 14 of them.
  */
 async function cachedFetch<T>(url: string, ttlSeconds = REVALIDATE_SECONDS): Promise<T> {
   const cached = CACHE.get(url) as Entry<T> | undefined;
@@ -210,32 +215,39 @@ async function cachedFetch<T>(url: string, ttlSeconds = REVALIDATE_SECONDS): Pro
     return cached.value;
   }
 
-  try {
-    const res = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        // Some APIs ask for a UA on some routes; harmless.
-        "User-Agent": "crypto-dashboard/1.0",
-      },
-    });
+  const inflightKey = url;
+  const existing = CACHE_INFLIGHT.get(inflightKey) as Promise<T> | undefined;
+  if (existing) return existing;
 
-    if (!res.ok) {
-      throw new Error(`API ${res.status}: ${res.statusText} (${url})`);
-    }
+  const p = (async () => {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          // Some APIs ask for a UA on some routes; harmless.
+          "User-Agent": "crypto-dashboard/1.0",
+        },
+      });
 
-    const data = (await res.json()) as T;
-    CACHE.set(url, { value: data, expiresAt: Date.now() + ttlSeconds * 1000 });
-    // Bound the cache
-    if (CACHE.size > 200) {
-      const oldestKey = CACHE.keys().next().value;
-      if (oldestKey) CACHE.delete(oldestKey);
+      if (!res.ok) {
+        throw new Error(`API ${res.status}: ${res.statusText} (${url})`);
+      }
+
+      const data = (await res.json()) as T;
+      CACHE.set(url, { value: data, expiresAt: Date.now() + ttlSeconds * 1000 });
+      // Bound the cache
+      if (CACHE.size > 200) {
+        const oldestKey = CACHE.keys().next().value;
+        if (oldestKey) CACHE.delete(oldestKey);
+      }
+      return data;
+    } finally {
+      CACHE_INFLIGHT.delete(inflightKey);
     }
-    return data;
-  } catch (error) {
-    // In development, we still throw the error to allow fallback chains to work
-    // Mock data is only used as a final resort at the end of all fallback chains
-    throw error;
-  }
+  })();
+  CACHE_INFLIGHT.set(inflightKey, p);
+
+  return p;
 }
 
 // ---------- Alternative API Implementations ----------
