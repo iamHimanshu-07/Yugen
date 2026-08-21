@@ -60,7 +60,6 @@ export default function Home() {
             <span>No API keys</span><span>·</span>
             <span>No accounts</span><span>·</span>
             <span>No fake data</span><span>·</span>
-            <span>Vercel-deployable</span>
           </div>
         </div>
       </section>
