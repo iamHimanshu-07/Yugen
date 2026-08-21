@@ -59,7 +59,7 @@ export default function Home() {
           <div style={{ marginTop: 28, display: "flex", gap: 20, flexWrap: "wrap", color: "var(--dim)", fontSize: 13 }}>
             <span>No API keys</span><span>·</span>
             <span>No accounts</span><span>·</span>
-            <span>No fake data</span><span>·</span>
+            <span>No fake data</span>
           </div>
         </div>
       </section>
