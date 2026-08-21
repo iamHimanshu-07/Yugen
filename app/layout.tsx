@@ -111,15 +111,12 @@ async function SiteFooter() {
           <ul>
             <li><a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko ↗</a></li>
             <li><a href="https://www.reddit.com" target="_blank" rel="noopener">Reddit ↗</a></li>
-            <li><a href="/feed.xml">RSS feed</a></li>
-            <li><a href="/sitemap.xml">Sitemap</a></li>
           </ul>
         </div>
         <div>
           <h4>Resources</h4>
           <ul>
             <li><a href="/about">The story</a></li>
-            <li><a href="/about#how-its-built">How it&apos;s built</a></li>
             <li><a href="https://github.com/iamHimanshu-07/Yugen" target="_blank" rel="noopener">GitHub ↗</a></li>
           </ul>
         </div>
