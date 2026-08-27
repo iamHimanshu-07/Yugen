@@ -4,7 +4,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org) [![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev) [![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8)](https://tailwindcss.com) [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)](https://www.typescriptlang.org) [![License](https://img.shields.io/badge/license-MIT-blue)](#license) [![Vercel](https://img.shields.io/badge/deploy-Vercel-000)](https://vercel.com)
 
-**Live demo →** [yugen-xi.vercel.app](https://yugen-xi.vercel.app)
+**Live demo →** [yugen-x.vercel.app](https://yugen-x.vercel.app)
 
 ---
 
@@ -199,7 +199,7 @@ npx vercel --prod    # explicit production promotion (only when you're ready)
 
 The current production deployment is at:
 
-> **[yugen-xi.vercel.app](https://yugen-xi.vercel.app)**
+> **[yugen-x.vercel.app](https://yugen-x.vercel.app)**
 
 All 14 coin pages are statically generated at build time. The chart endpoint is server-rendered with 60-second revalidation. Cache invalidation happens automatically — there is no manual step.
 
