@@ -82,6 +82,8 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="section-tight"><div className="divider" /></div>
+
       {/* ============ 3. "SEE IT WORK" ============ */}
       <section className="section">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16, marginBottom: 36 }}>
