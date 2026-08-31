@@ -26,14 +26,14 @@ export const metadata: Metadata = {
   title: "Yugen",
   description:
     "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts, no made-up numbers.",
-  metadataBase: new URL("https://yugen-xi.vercel.app"),
+  metadataBase: new URL("https://yugen-x.vercel.app"),
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   alternates: {
     types: {
       "application/rss+xml": [
-        { url: "https://yugen-xi.vercel.app/feed.xml", title: "Yugen — Latest crypto news" },
+        { url: "https://yugen-x.vercel.app/feed.xml", title: "Yugen — Latest crypto news" },
       ],
     },
   },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description:
       "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts.",
     type: "website",
-    url: "https://yugen-xi.vercel.app",
+    url: "https://yugen-x.vercel.app",
     siteName: "Yugen",
   },
   twitter: {
@@ -103,6 +103,7 @@ async function SiteFooter() {
           <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/markets">Markets</a></li>
+            <li><a href="/how-it-works">How it works</a></li>
             <li><a href="/about">About</a></li>
           </ul>
         </div>

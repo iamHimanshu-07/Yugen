@@ -5,12 +5,12 @@
  * fallback) into a single feed users can subscribe to. Cached server-side
  * for 5 minutes, matching the news cache TTL.
  *
- * Subscribe URL: https://yugen-xi.vercel.app/feed.xml
+ * Subscribe URL: https://yugen-x.vercel.app/feed.xml
  */
 
 import { fetchNews } from "@/lib/news";
 
-const SITE_URL = "https://yugen-xi.vercel.app";
+const SITE_URL = "https://yugen-x.vercel.app";
 const FEED_TITLE = "Yugen — Latest crypto news";
 const FEED_DESCRIPTION =
   "Open-data crypto headlines, sourced from CryptoPanic and the top crypto RSS feeds. Updated every 5 minutes.";

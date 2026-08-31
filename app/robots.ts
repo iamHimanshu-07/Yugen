@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://yugen-xi.vercel.app/sitemap.xml",
-    host: "https://yugen-xi.vercel.app",
+    sitemap: "https://yugen-x.vercel.app/sitemap.xml",
+    host: "https://yugen-x.vercel.app",
   };
 }

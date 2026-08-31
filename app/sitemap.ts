@@ -5,7 +5,7 @@
 import type { MetadataRoute } from "next";
 import { listCoins } from "@/lib/coins";
 
-const SITE = "https://yugen-xi.vercel.app";
+const SITE = "https://yugen-x.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

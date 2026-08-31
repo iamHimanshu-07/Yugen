@@ -214,7 +214,7 @@ export default async function CoinOG({ params }: { params: Promise<{ id: string 
         >
           <div style={{ display: "flex" }}>Price · Supply · Sentiment · Social feed</div>
           <div style={{ color: "#FF6A1A", display: "flex" }}>
-            yugen-xi.vercel.app/coin/{coin.coingeckoId} →
+            yugen-x.vercel.app/coin/{coin.coingeckoId} →
           </div>
         </div>
       </div>
