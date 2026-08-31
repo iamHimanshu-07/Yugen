@@ -30,7 +30,7 @@ const RANGES = [
   { label: "1Y",  days: 365 },
 ];
 
-const MAX_PICKS = 6;
+const MAX_PICKS = 7;
 
 export function CompareView({ picklist }: { picklist: PickOption[] }) {
   const router = useRouter();

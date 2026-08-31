@@ -22,7 +22,7 @@ export default function Home() {
         <div className="section" style={{ paddingTop: 120, paddingBottom: 64 }}>
           <div className="hero-eyebrow" style={{ marginBottom: 28 }}>
             <span className="dot" />
-            <span>read the depth · 14 coins · live</span>
+            <span>read the depth · 21 coins · live</span>
           </div>
 
           <h1 className="h-display" style={{ maxWidth: 900 }}>
@@ -42,7 +42,7 @@ export default function Home() {
             marginTop: 28, maxWidth: 640,
             color: "var(--muted)", fontSize: 19, lineHeight: 1.6,
           }}>
-            Yugen is a live, no-account dashboard for the 14 coins that actually move the market.
+            Yugen is a live, no-account dashboard for the 21 coins that actually move the market.
             Price, supply, sentiment, and what people are saying — without API keys, sign-ups, or
             made-up numbers. Read the depth, not the noise.
           </p>
@@ -68,7 +68,7 @@ export default function Home() {
       <section className="section-tight">
         <div className="kpi-strip">
           <div>
-            <div className="num mono">14</div>
+            <div className="num mono">21</div>
             <div className="lbl">Coins tracked</div>
           </div>
           <div>
@@ -214,7 +214,7 @@ export default function Home() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="md:grid-cols-3 sm:grid-cols-1">
           {[
-            { ix: "01", title: "Pick a coin", body: "Browse the catalog of 14 — Bitcoin, Ethereum, Solana, all the way through Monero, Zcash, and the stables." },
+            { ix: "01", title: "Pick a coin", body: "Browse the catalog of 21 — Bitcoin, Ethereum, Solana, all the way through Monero, Zcash, and the stables." },
             { ix: "02", title: "Read the signal", body: "Price chart, sentiment bar, top-of-feed posts and supply snapshot — all on one page, no scrolling back and forth." },
             { ix: "03", title: "Share the link", body: "Every URL is public. Send a Bitcoin chart, an Ethereum sentiment snapshot, or the full Solana dashboard to anyone." },
           ].map((s) => (
