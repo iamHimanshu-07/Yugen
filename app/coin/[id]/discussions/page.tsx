@@ -101,7 +101,7 @@ export default async function DiscussionsPage({
                   Twitter followers
                 </span>
                 <span className="mono" style={{ fontWeight: 700 }}>
-                  {fmtInt(detail.community_data.twitter_followers)}
+                  {fmtInt(detail?.community_data?.twitter_followers)}
                 </span>
               </div>
               <div
@@ -115,7 +115,7 @@ export default async function DiscussionsPage({
                   Reddit subs
                 </span>
                 <span className="mono" style={{ fontWeight: 700 }}>
-                  {fmtInt(detail.community_data.reddit_subscribers)}
+                  {fmtInt(detail?.community_data?.reddit_subscribers)}
                 </span>
               </div>
               <div
@@ -129,7 +129,7 @@ export default async function DiscussionsPage({
                   Active (48h)
                 </span>
                 <span className="mono" style={{ fontWeight: 700 }}>
-                  {fmtInt(detail.community_data.reddit_accounts_active_48h)}
+                  {fmtInt(detail?.community_data?.reddit_accounts_active_48h)}
                 </span>
               </div>
             </div>
