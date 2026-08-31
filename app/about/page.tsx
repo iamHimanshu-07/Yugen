@@ -38,12 +38,12 @@ export default function AboutPage() {
 
       <Section
         eyebrow="What it is"
-        title="A live, no-account dashboard for 14 coins."
+        title="A live, no-account dashboard for 21 coins."
       >
         <p>
           Yugen pulls price, market cap, supply, sentiment and social signal for the
-          coins that actually matter — Bitcoin, Ethereum, Solana, the stables, the
-          privacy coins. No account, no API keys, no scraping, no fake numbers.
+          coins that actually move the market — Bitcoin, Ethereum, Solana, the stables, and
+          the privacy coins. No account, no API keys, no scraping, no fake numbers.
         </p>
         <p>
           Every value on the page traces back to a public, free data source you can verify
@@ -114,12 +114,13 @@ export default function AboutPage() {
       >
         <p>
           The roadmap is constrained by one rule: <em>don&apos;t add anything that requires a
-          key, an account, or opaque weighting.</em> That means:
+          key, an account, or opaque weighting.</em> Current focus is on expanding high-fidelity
+          signals:
         </p>
         <ul style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.7, paddingLeft: 22 }}>
-          <li>Wire a real sentiment source (CryptoPanic / LunarCrush — free tiers exist) when the catalog needs it.</li>
-          <li>Expand the catalog once a meaningful 15th coin (e.g. stablecoin peg stability) is requested.</li>
-          <li>Add a public RSS feed of &quot;unusual activity&quot; alerts sourced from the existing CoinGecko response.</li>
+          <li>Refining sentiment analysis by incorporating broader social datasets beyond Reddit.</li>
+          <li>Expanding the catalog to 25+ coins as new market leaders emerge.</li>
+          <li>Implementing public RSS alerts for unusual volume or price volatility sourced from open APIs.</li>
         </ul>
         <p style={{ marginTop: 16 }}>
           What we won&apos;t add: WebSocket price spam, paid tiers, watchlists that require

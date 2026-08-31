@@ -49,10 +49,8 @@ export default function ComparePage() {
           Up to 7 coins. Normalized to 100.
         </h1>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 720 }}>
-          Each series starts at 100 at the beginning of the selected range, so
-          coins with different price scales (think $60k BTC vs $0.08 DOGE) sit
-          on the same axes. The number you read is percent change from the
-          range start.
+          Each series starts at 100 at the beginning of the selected range, so coins with different price scales 
+          (think $60k BTC vs $0.08 DOGE) sit on the same axes. The number you read is percent change from the range start.
         </p>
       </div>
 

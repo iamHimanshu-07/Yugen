@@ -1,15 +1,11 @@
 /**
- * Landing page — 11 sections in order:
+ * Landing page — 5 sections in order:
  *   1. Hero
  *   2. KPI strip (3 stats)
- *   3. "See it work" — two mocked panels (before/after)
- *   4. "Measured, not claimed" — three comparison tiles with bar fills
- *   5. Pipeline diagram (5 nodes)
- *   6. How it works (3 steps)
- *   7. Three-pillar feature grid
- *   8. Why Yugen (brand story block — left prose, right 4 mini-cards)
- *   9. CTA band (full-bleed gradient)
- *  10. (footer lives in app/layout.tsx)
+ *   3. "Measured, not claimed" — three comparison tiles with bar fills
+ *   4. Why Yugen (brand story block — left prose, right 4 mini-cards)
+ *   5. CTA band (full-bleed gradient)
+ *  6. (footer lives in app/layout.tsx)
  */
 import Link from "next/link";
 
@@ -84,79 +80,7 @@ export default function Home() {
 
       <div className="section-tight"><div className="divider" /></div>
 
-      {/* ============ 3. "SEE IT WORK" ============ */}
-      <section className="section">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16, marginBottom: 36 }}>
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 14 }}>See it work</div>
-            <h2 className="h-section">From one coin to a full dashboard.</h2>
-          </div>
-          <Link href="/markets" className="btn btn-ghost btn-sm">Try every coin →</Link>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="lg:grid-cols-2 sm:grid-cols-1">
-          {/* "Before" — minimal market-row */}
-          <div className="card" style={{ padding: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-              <span className="src-pill" style={{ background: "rgba(138,147,166,0.12)", color: "var(--muted)", borderColor: "var(--border-strong)" }}>BEFORE</span>
-              <span style={{ color: "var(--muted)", fontSize: 13 }}>Plain ticker</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div className="symbol" style={{
-                width: 56, height: 56, borderRadius: 16,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(247,147,26,0.14)", color: "#F7931A",
-                fontWeight: 800, fontSize: 28,
-              }}>₿</div>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>Bitcoin</div>
-                <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 2, fontWeight: 600, letterSpacing: "0.06em" }}>BTC</div>
-              </div>
-            </div>
-            <div className="mono" style={{ fontSize: 36, fontWeight: 700, marginTop: 24, letterSpacing: "-0.02em" }}>$—</div>
-            <div style={{ color: "var(--dim)", fontSize: 13, marginTop: 4 }}>No context. No signal. Just a price.</div>
-          </div>
-
-          {/* "After" — the dashboard preview */}
-          <div className="card" style={{
-            padding: 28,
-            border: "1px solid rgba(255,106,26,0.35)",
-            background: "linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-              <span className="src-pill">AFTER · LIVE</span>
-              <span style={{ color: "var(--muted)", fontSize: 13 }}>/coin/bitcoin</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div className="symbol" style={{
-                width: 56, height: 56, borderRadius: 16,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(247,147,26,0.18)", color: "#F7931A",
-                fontWeight: 800, fontSize: 28,
-              }}>₿</div>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>Bitcoin</div>
-                <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 2, fontWeight: 600, letterSpacing: "0.06em" }}>BTC · 1H · 24H · 1W · 1M · 1Y</div>
-              </div>
-            </div>
-            <div className="mono" style={{ fontSize: 36, fontWeight: 700, marginTop: 24, letterSpacing: "-0.02em" }}>
-              $63,284.21 <span className="delta-down" style={{ fontSize: 16, marginLeft: 10 }}>−2.41%</span>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-              <span className="pill pill-bull">80% bullish</span>
-              <span className="pill pill-accent">MVRV 1.42</span>
-              <span className="pill pill-neutral">312 posts/wk</span>
-            </div>
-            <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", fontSize: 12 }}>
-              <span>→</span><span>Sentiment, social, supply, on-chain — all one click deeper</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-tight"><div className="divider" /></div>
-
-      {/* ============ 4. MEASURED, NOT CLAIMED ============ */}
+      {/* ============ 3. MEASURED, NOT CLAIMED ============ */}
       <section className="section">
         <div className="eyebrow" style={{ marginBottom: 14 }}>Measured, not claimed</div>
         <h2 className="h-section" style={{ marginBottom: 36, maxWidth: 760 }}>Numbers you can verify in 30 seconds.</h2>
@@ -183,39 +107,7 @@ export default function Home() {
 
       <div className="section-tight"><div className="divider" /></div>
 
-      {/* ============ 7. THREE PILLARS ============ */}
-      <section className="section" id="pillars">
-        <div className="eyebrow" style={{ marginBottom: 14 }}>What you get</div>
-        <h2 className="h-section" style={{ marginBottom: 36, maxWidth: 760 }}>Real-time, on-chain aware, open.</h2>
-
-        <div className="pillar-grid">
-          <div className="pillar">
-            <div className="glyph">◴</div>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>Real-time</div>
-            <div style={{ marginTop: 10, color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
-              CoinGecko + Reddit on a 60-second refresh. Live ticker pills update with the latest trade.
-            </div>
-          </div>
-          <div className="pillar">
-            <div className="glyph">⛓</div>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>On-chain aware</div>
-            <div style={{ marginTop: 10, color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
-              Circulating, total and max supply per coin — pulled directly from the CoinGecko coin page, no manual tables.
-            </div>
-          </div>
-          <div className="pillar">
-            <div className="glyph">◬</div>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em" }}>Open data</div>
-            <div style={{ marginTop: 10, color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
-              Every value comes from a free public API. No scraping, no paid tiers, no opaque weighting.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="section-tight"><div className="divider" /></div>
-
-      {/* ============ 8. WHY YUGEN (story block) ============ */}
+      {/* ============ 4. WHY YUGEN (story block) ============ */}
       <section className="section">
         <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 56 }} className="md:grid-cols-2 sm:grid-cols-1">
           <div>
@@ -256,7 +148,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ 9. CTA BAND ============ */}
+      {/* ============ 5. CTA BAND ============ */}
       <section className="section">
         <div className="cta-band">
           <div className="eyebrow" style={{ justifyContent: "center", marginBottom: 18 }}>

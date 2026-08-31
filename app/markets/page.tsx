@@ -98,8 +98,7 @@ export default async function MarketsPage() {
 
       <section className="section-tight" style={{ paddingTop: 8 }}>
         <div style={{ color: "var(--dim)", fontSize: 12, lineHeight: 1.6 }}>
-          Prices refresh every ~60 seconds from CoinGecko. Two coins considered for the catalog
-          (HYPE, LEO) are excluded — they don't load on the free tier from this region.
+          Prices refresh every ~60 seconds from CoinGecko.
         </div>
       </section>
     </>
