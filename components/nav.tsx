@@ -25,7 +25,7 @@ export function TopNav() {
           <Link href="/news" className="topnav-link">News</Link>
           <Link href="/predict" className="topnav-link">Prediction</Link>
           <Link href="/about" className="topnav-link">About</Link>
-          <Link href="/#how" className="topnav-link">How it works</Link>
+          <Link href="/how-it-works" className="topnav-link">How it works</Link>
           <Link href="https://github.com/iamHimanshu-07/Yugen" target="_blank" rel="noopener" className="topnav-link">
             GitHub ↗
           </Link>
