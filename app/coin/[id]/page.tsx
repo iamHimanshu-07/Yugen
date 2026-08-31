@@ -12,6 +12,7 @@ import {
   type CoinDetail,
   type MarketChart,
 } from "@/lib/coingecko";
+import { fetchFundingRate, fetchDexLiquidity } from "@/lib/exchange";
 import { getCoinByGeckoId, listCoins } from "@/lib/coins";
 import { fetchRealSentiment } from "@/lib/sentiment-real";
 import { fetchSocialPosts } from "@/lib/reddit";
@@ -58,6 +59,11 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
     loadError = e instanceof Error ? e.message : "Could not load coin data";
   }
 
+  const [funding, liquidity] = await Promise.all([
+    fetchFundingRate(coin.symbol),
+    fetchDexLiquidity(coin.symbol),
+  ]);
+
   const sentiment = await fetchRealSentiment(coin.symbol);
   const usingMock = posts[0]?.source === "mock";
 
@@ -86,14 +92,14 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
           />
         )}
 
-        {/* Enhanced 4-KPI strip with more data points */}
+        {/* Enhanced KPI strip with professional signals */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: 12,
           }}
-          className="md:grid-cols-2 sm:grid-cols-1"
+          className="md:grid-cols-3 sm:grid-cols-1"
         >
           <KpiBlock
             label="Market cap"
@@ -114,6 +120,18 @@ export default async function CoinPage({ params }: { params: Promise<{ id: strin
             label="All-time low"
             value={detail ? fmtUSD(detail.market_data.atl.usd, 2) : "—"}
             neutral
+          />
+          <KpiBlock
+            label="Funding rate"
+            value={funding ? fmtPct(funding.lastFundingRate) : "—"}
+            delta={funding ? funding.lastFundingRate : null}
+            sublabel="Market Bias"
+          />
+          <KpiBlock
+            label="Dex liquidity"
+            value={liquidity ? fmtBigUSD(liquidity.usdLiquidity ?? 0) : "—"}
+            neutral
+            sublabel="Exit Signal"
           />
         </div>
 
@@ -144,11 +162,13 @@ function KpiBlock({
   value,
   delta,
   neutral,
+  sublabel,
 }: {
   label: string;
   value: string;
   delta?: number | null | undefined;
   neutral?: boolean;
+  sublabel?: string;
 }) {
   return (
     <div className="metric-card">
@@ -156,6 +176,11 @@ function KpiBlock({
       <div className="val">{value}</div>
       {delta != null && !neutral && (
         <div className={`delta ${pctColor(delta)}`}>{fmtPct(delta)} · 24h</div>
+      )}
+      {sublabel && (
+        <div style={{ fontSize: 10, color: "var(--dim)", marginTop: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          {sublabel}
+        </div>
       )}
     </div>
   );

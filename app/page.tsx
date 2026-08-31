@@ -72,7 +72,7 @@ export default function Home() {
             <div className="lbl">Price points served daily</div>
           </div>
           <div>
-            <div className="num mono">2</div>
+            <div className="num mono">4</div>
             <div className="lbl">Open data sources</div>
           </div>
         </div>
@@ -127,7 +127,6 @@ export default function Home() {
             </p>
             <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/about" className="btn btn-ghost btn-sm">Read the full story →</Link>
-              <Link href="/markets" className="btn btn-ghost btn-sm">Skip to the catalog →</Link>
             </div>
           </div>
 
@@ -135,8 +134,8 @@ export default function Home() {
             {[
               { glyph: "◴", label: "Real-time",         body: "Prices refresh every 60 seconds from CoinGecko. Reddit feed refreshes every two minutes. No polling, no fake lag." },
               { glyph: "⛓", label: "On-chain aware",    body: "Circulating, total and max supply per coin — pulled from CoinGecko's coin endpoint, not a hand-curated table." },
-              { glyph: "◬", label: "Open data",         body: "Every value traces to a free public API. Click through. Verify in 30 seconds. We don't gate the sources." },
-              { glyph: "✕", label: "No made-up numbers", body: "When data is missing, we show —, not a guess. Sentiment is labeled 'mock' in the UI until a real key is wired." },
+              { glyph: "◬", label: "Open data",         body: "Every value traces to a free public API (CoinGecko, Reddit, Binance, DexScreener). Click through. Verify in 30 seconds." },
+              { glyph: "✕", label: "No made-up numbers", body: "When data is missing, we show —, not a guess. Pro signals like Funding Rates are pulled live, not simulated." },
             ].map((p) => (
               <div className="card" key={p.label} style={{ padding: 18 }}>
                 <div style={{ fontSize: 22, color: "var(--accent)", fontWeight: 800 }} className="symbol">{p.glyph}</div>

@@ -47,7 +47,8 @@ export default function AboutPage() {
         </p>
         <p>
           Every value on the page traces back to a public, free data source you can verify
-          in 30 seconds. CoinGecko for prices. Reddit for social signal. Nothing else.
+          in 30 seconds. CoinGecko for prices, Reddit for social signal, Binance for funding,
+          and DexScreener for liquidity. Nothing else.
         </p>
       </Section>
 

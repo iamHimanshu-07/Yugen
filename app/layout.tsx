@@ -112,6 +112,8 @@ async function SiteFooter() {
           <ul>
             <li><a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko ↗</a></li>
             <li><a href="https://www.reddit.com" target="_blank" rel="noopener">Reddit ↗</a></li>
+            <li><a href="https://www.binance.com" target="_blank" rel="noopener">Binance ↗</a></li>
+            <li><a href="https://dexscreener.com" target="_blank" rel="noopener">DexScreener ↗</a></li>
           </ul>
         </div>
         <div>
