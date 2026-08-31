@@ -82,6 +82,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ============ 2.5 QUICK GLANCE ============ */}
+      <section className="section" style={{ paddingTop: 0 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }} className="md:grid-cols-4 sm:grid-cols-2">
+          {[
+            { symbol: "BTC", name: "Bitcoin", role: "Digital Gold", color: "#F7931A", glyph: "₿" },
+            { symbol: "ETH", name: "Ethereum", role: "World Computer", color: "#627EEA", glyph: "Ξ" },
+            { symbol: "SOL", name: "Solana", role: "High Performance", color: "#14F195", glyph: "◎" },
+            { symbol: "USDT", name: "Tether", role: "Market Liquidity", color: "#26A17B", glyph: "₮" },
+          ].map((c) => (
+            <Link href={`/coin/${c.symbol === "BTC" ? "bitcoin" : c.symbol === "ETH" ? "ethereum" : c.symbol === "SOL" ? "solana" : c.symbol === "USDT" ? "tether" : c.symbol.toLowerCase()}`} key={c.symbol} className="card" style={{ padding: 16, textAlign: "center", border: "1px solid rgba(255,255,255,0.04)" }}>
+              <div className="symbol" style={{
+                width: 40, height: 40, borderRadius: 12, margin: "0 auto 12px",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: `${c.color}22`, color: c.color, fontWeight: 800, fontSize: 20
+              }}>{c.glyph}</div>
+              <div style={{ fontSize: 14, fontWeight: 800 }}>{c.name}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{c.role}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <div className="section-tight"><div className="divider" /></div>
 
       {/* ============ 3. "SEE IT WORK" ============ */}
@@ -313,7 +335,7 @@ export default function Home() {
             See the chain, not the noise.
           </h2>
           <p style={{ marginTop: 16, color: "var(--muted)", fontSize: 16, maxWidth: 560, margin: "16px auto 0" }}>
-            Open the dashboard. 14 coins, one page each. No setup.
+            Open the dashboard. 21 coins, one page each. No setup.
           </p>
           <div style={{ marginTop: 32, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/markets" className="btn btn-primary" style={{ height: 52, padding: "0 24px", fontSize: 15 }}>
