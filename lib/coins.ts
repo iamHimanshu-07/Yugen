@@ -34,6 +34,13 @@ export const COINS: Record<string, Coin> = {
   DOGE: { symbol: "DOGE", name: "Dogecoin",  glyph: "Ð",  color: "#C2A633", coingeckoId: "dogecoin",      decimals: 4, kind: "meme" },
   USDT: { symbol: "USDT", name: "Tether",    glyph: "₮",  color: "#26A17B", coingeckoId: "tether",        decimals: 4, kind: "stable" },
   USDC: { symbol: "USDC", name: "USD Coin",  glyph: "$",  color: "#2775CA", coingeckoId: "usd-coin",      decimals: 4, kind: "stable" },
+  AVAX: { symbol: "AVAX", name: "Avalanche", glyph: "🔺",  color: "#E84142", coingeckoId: "avalanche-gox", decimals: 2, kind: "l1" },
+  SHIB: { symbol: "SHIB", name: "Shiba Inu",  glyph: "🐕",  color: "#FFA500", coingeckoId: "shiba-inu",    decimals: 6, kind: "meme" },
+  DOT:  { symbol: "DOT",  name: "Polkadot",  glyph: "●",  color: "#E6007A", coingeckoId: "polkadot",      decimals: 4, kind: "l1" },
+  POL:  { symbol: "POL",  name: "Polygon",    glyph: "🟣",  color: "#8247E5", coingeckoId: "polygon-ecosystem-token", decimals: 4, kind: "l1" },
+  BCH:  { symbol: "BCH",  name: "Bitcoin Cash", glyph: "₿", color: "#00CC66", coingeckoId: "bitcoin-cash",  decimals: 2, kind: "l1" },
+  LTC:  { symbol: "LTC",  name: "Litecoin",   glyph: "Ł",  color: "#345D9D", coingeckoId: "litecoin",      decimals: 4, kind: "l1" },
+  NEAR: { symbol: "NEAR", name: "Near",       glyph: "N",  color: "#000000", coingeckoId: "near-protocol", decimals: 4, kind: "l1" },
 };
 
 export function getCoin(symbol: string): Coin | undefined {

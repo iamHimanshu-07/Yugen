@@ -17,7 +17,7 @@ import { CompareView } from "./compare-view";
 export const metadata: Metadata = {
   title: "Compare — Yugen",
   description:
-    "Overlay normalized price charts for up to 3 coins. Compare BTC, ETH, SOL and more on the same axes.",
+    "Overlay normalized price charts for up to 6 coins. Compare BTC, ETH, SOL and more on the same axes.",
 };
 
 export const revalidate = 60;
@@ -46,7 +46,7 @@ export default function ComparePage() {
       <div>
         <div className="eyebrow" style={{ marginBottom: 8 }}>Compare</div>
         <h1 className="h-section" style={{ fontSize: "clamp(28px, 3.6vw, 40px)" }}>
-          Up to 3 coins. Normalized to 100.
+          Up to 6 coins. Normalized to 100.
         </h1>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 720 }}>
           Each series starts at 100 at the beginning of the selected range, so

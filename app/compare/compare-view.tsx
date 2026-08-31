@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
+import { mockPrediction } from "@/lib/sentiment";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
@@ -29,7 +30,7 @@ const RANGES = [
   { label: "1Y",  days: 365 },
 ];
 
-const MAX_PICKS = 3;
+const MAX_PICKS = 6;
 
 export function CompareView({ picklist }: { picklist: PickOption[] }) {
   const router = useRouter();
@@ -158,13 +159,27 @@ export function CompareView({ picklist }: { picklist: PickOption[] }) {
             const last = s.points[s.points.length - 1]?.[1] ?? 0;
             const pct = first > 0 ? ((last - first) / first) * 100 : 0;
             return (
-              <div key={s.coingeckoId} className="metric-card">
-                <div className="lbl" style={{ color: s.color }}>{s.symbol}</div>
-                <div className="val" style={{ marginTop: 6 }}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</div>
-                <div className={`delta ${pct >= 0 ? "delta-up" : "delta-down"}`} style={{ fontSize: 11 }}>
-                  over {days === 365 ? "1Y" : `${days}D`}
+                <div key={s.coingeckoId} className="metric-card">
+                  <div className="lbl" style={{ color: s.color }}>{s.symbol}</div>
+                  <div className="val" style={{ marginTop: 6 }}>{pct >= 0 ? "+" : ""}{pct.toFixed(2)}%</div>
+                  <div className={`delta ${pct >= 0 ? "delta-up" : "delta-down"}`} style={{ fontSize: 11 }}>
+                    over {days === 365 ? "1Y" : `${days}D`}
+                  </div>
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 4 }}>
+                    <div style={{ fontSize: 10, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Prediction</div>
+                    {(() => {
+                      const pred = mockPrediction(s.symbol);
+                      const isBull = pred.sentiment === "Bullish";
+                      const isBear = pred.sentiment === "Bearish";
+                      return (
+                        <div style={{ fontSize: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: isBull ? "var(--bull)" : isBear ? "var(--bear)" : "var(--muted)", fontWeight: 600 }}>{pred.sentiment}</span>
+                          <span style={{ fontFamily: "JetBrains Mono, monospace", fontWeight: 700 }}>{pred.projectedChange}</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
-              </div>
             );
           })}
         </div>

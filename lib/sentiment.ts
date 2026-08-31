@@ -19,6 +19,36 @@ export interface Sentiment {
   source: "mock";
 }
 
+export interface Prediction {
+  sentiment: "Bullish" | "Bearish" | "Neutral";
+  projectedChange: string;
+  confidence: string;
+  source: "mock";
+}
+
+export function mockPrediction(symbol: string): Prediction {
+  const coin = getCoin(symbol);
+  if (!coin) {
+    return { sentiment: "Neutral", projectedChange: "0%", confidence: "Low", source: "mock" };
+  }
+  const h = hash(coin.coingeckoId + ":predict");
+  const sentimentVal = h % 3;
+  const sentiment = sentimentVal === 0 ? "Bullish" : sentimentVal === 1 ? "Bearish" : "Neutral";
+
+  const changeVal = (h % 40) - 20; // -20% to +20%
+  const projectedChange = `${changeVal >= 0 ? "+" : ""}${changeVal.toFixed(1)}%`;
+
+  const confidenceVal = h % 3;
+  const confidence = confidenceVal === 0 ? "Low" : confidenceVal === 1 ? "Medium" : "High";
+
+  return {
+    sentiment,
+    projectedChange,
+    confidence,
+    source: "mock",
+  };
+}
+
 function hash(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
