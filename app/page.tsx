@@ -82,30 +82,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ 2.5 QUICK GLANCE ============ */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }} className="md:grid-cols-4 sm:grid-cols-2">
-          {[
-            { symbol: "BTC", name: "Bitcoin", role: "Digital Gold", color: "#F7931A", glyph: "₿" },
-            { symbol: "ETH", name: "Ethereum", role: "World Computer", color: "#627EEA", glyph: "Ξ" },
-            { symbol: "SOL", name: "Solana", role: "High Performance", color: "#14F195", glyph: "◎" },
-            { symbol: "USDT", name: "Tether", role: "Market Liquidity", color: "#26A17B", glyph: "₮" },
-          ].map((c) => (
-            <Link href={`/coin/${c.symbol === "BTC" ? "bitcoin" : c.symbol === "ETH" ? "ethereum" : c.symbol === "SOL" ? "solana" : c.symbol === "USDT" ? "tether" : c.symbol.toLowerCase()}`} key={c.symbol} className="card" style={{ padding: 16, textAlign: "center", border: "1px solid rgba(255,255,255,0.04)" }}>
-              <div className="symbol" style={{
-                width: 40, height: 40, borderRadius: 12, margin: "0 auto 12px",
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: `${c.color}22`, color: c.color, fontWeight: 800, fontSize: 20
-              }}>{c.glyph}</div>
-              <div style={{ fontSize: 14, fontWeight: 800 }}>{c.name}</div>
-              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{c.role}</div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <div className="section-tight"><div className="divider" /></div>
-
       {/* ============ 3. "SEE IT WORK" ============ */}
       <section className="section">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16, marginBottom: 36 }}>
