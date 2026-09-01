@@ -1,5 +1,5 @@
 /**
- * Markets index — the 14-coin catalog grid.
+ * Markets index — the 21-coin catalog grid.
  * Server Component. Pulls live data from CoinGecko, filtered to catalog coins.
  * Sort + filter is client-side (the result set is only 14 rows).
  */

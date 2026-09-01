@@ -1,6 +1,6 @@
 /**
  * sitemap.xml — emitted by Next.js at /sitemap.xml from this file.
- * Includes /, /markets, /about, and all 14 /coin/[id] routes.
+ * Includes /, /markets, /about, and all 21 /coin/[id] routes.
  */
 import type { MetadataRoute } from "next";
 import { listCoins } from "@/lib/coins";

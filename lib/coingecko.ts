@@ -206,8 +206,8 @@ function generateMockMarketChart(id: string, days: number): MarketChart {
  * Enhanced cached fetch with mock fallback for development
  *
  * Adds single-flight semantics: when the same URL is requested concurrently
- * and the cache is cold (e.g. 14 coin pages prerendering in parallel),
- * callers share one upstream request instead of fanning out 14 of them.
+ * and the cache is cold (e.g. 21 coin pages prerendering in parallel),
+ * callers share one upstream request instead of fanning out 21 of them.
  */
 async function cachedFetch<T>(url: string, ttlSeconds = REVALIDATE_SECONDS): Promise<T> {
   const cached = CACHE.get(url) as Entry<T> | undefined;
@@ -971,7 +971,7 @@ async function fetchAlternativeGlobal(): Promise<GlobalData> {
 // ---------- Public API with Fallback ----------
 
 /**
- * Fetch all 14 catalog coins' market data with parallel fallback:
+ * Fetch all 21 catalog coins' market data with parallel fallback:
  * Tries CoinGecko, CoinPaprika, Binance, and KuCoin simultaneously
  * Returns data from the first successful API
  */

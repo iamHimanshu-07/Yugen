@@ -165,7 +165,7 @@ export function createCache<T>(options: CacheOptions<T>): Cache<T> {
 /* ============================================================
  * singleFlight — dedupe concurrent in-flight requests.
  *
- * During a cold cache (e.g. 14 coin pages prerendering in parallel,
+ * During a cold cache (e.g. 21 coin pages prerendering in parallel,
  * /feed.xml, /api/news, /api/chart at once), many callers race for the
  * same upstream URL. Without dedup, they all hit CoinGecko / CryptoPanic
  * simultaneously — burning rate limits and triggering 429s.

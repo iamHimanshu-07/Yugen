@@ -125,7 +125,7 @@ async function fetchRssFeed(url: string, source: string, domain: string): Promis
  * Fetch latest posts from CryptoPanic public API.
  * Returns normalized NewsItem array.
  *
- * Wrapped in singleFlight so concurrent callers (e.g. 14 coin pages
+ * Wrapped in singleFlight so concurrent callers (e.g. 21 coin pages
  * prerendering in parallel + the RSS feed endpoint) share one upstream
  * request instead of fanning out.
  */

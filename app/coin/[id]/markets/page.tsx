@@ -115,7 +115,7 @@ export default async function MarketsPage({
             href="/markets"
             style={{ color: "var(--accent)", textDecoration: "none" }}
           >
-            Browse the full 14-coin catalog →
+            Browse the full 21-coin catalog →
           </Link>
         </div>
       </div>

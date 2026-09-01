@@ -38,7 +38,7 @@ export default function SitemapPage() {
       changeFrequency: "hourly",
       priority: 0.9,
       name: "Markets",
-      description: "Overview of all 14 tracked cryptocurrencies",
+      description: "Overview of all 21 tracked cryptocurrencies",
     },
     {
       url: `${SITE}/about`,

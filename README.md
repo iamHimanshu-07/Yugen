@@ -23,7 +23,7 @@ Every value on the page traces back to a public, free data source you can verify
 - ⚡ **Edge-rendered** — Next.js 16 Server Components + Route Handlers, deployed on Vercel
 - 📊 **Interactive chart** — Apache ECharts with 24H / 1W / 1M / 1Y range tabs, re-fetched via Route Handler
 - 🔎 **21-coin catalog** — Bitcoin, Ethereum, BNB, Solana, XRP, ADA, TRX, LINK, XLM, ZEC, XMR, DOGE, USDT, USDC, and others
-- 🔍 **Search / filter / sort** — live client-side over the 14 cards
+- 🔍 **Search / filter / sort** — live client-side over the 21 cards
 - 🐦 **Real social signal** — Reddit JSON endpoint, server-side fetch with User-Agent, deterministic mock fallback
 - 🧠 **Stable sentiment** — labelled "OPEN DATA · Last 7d", deterministic per-coin hash so numbers don't flicker
 - 🌑 **Premium dark theme** — `#0A0B0F` base, `#FF6A1A` Bitcoin-coded accent, hairline borders, 18px card radius
@@ -154,7 +154,7 @@ crypto-dashboard/
 ├── components/
 │   ├── nav.tsx                          # Sticky top nav
 │   ├── status-indicator.tsx             # Server-side CoinGecko probe → footer pill
-│   ├── market/catalog-grid.tsx          # Client: search/filter/sort over 14 rows
+│   ├── market/catalog-grid.tsx          # Client: search/filter/sort over 21 rows
 │   └── coin-detail/
 │       ├── price-chart.tsx              # ECharts wrapper, range tabs (24H/1W/1M/1Y)
 │       ├── sentiment-bar.tsx            # Bull/bear split + action buttons
@@ -162,7 +162,7 @@ crypto-dashboard/
 │       ├── hot-topics.tsx               # Trending tags per coin
 │       └── related-coins.tsx            # 4 mini cards linking to other catalog coins
 ├── lib/
-│   ├── coins.ts                         # 14-coin catalog
+│   ├── coins.ts                         # 21-coin catalog
 │   ├── coingecko.ts                     # Server-side fetchers + in-memory LRU
 │   ├── reddit.ts                        # Reddit JSON fetcher + deterministic mock
 │   ├── sentiment.ts                     # Stable mock sentiment per coin
@@ -182,7 +182,7 @@ crypto-dashboard/
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm run build        # Static + SSG: all 14 coin pages prerender
+npm run build        # Static + SSG: all 21 coin pages prerender
 npm start
 ```
 
@@ -201,7 +201,7 @@ The current production deployment is at:
 
 > **[yugen-x.vercel.app](https://yugen-x.vercel.app)**
 
-All 14 coin pages are statically generated at build time. The chart endpoint is server-rendered with 60-second revalidation. Cache invalidation happens automatically — there is no manual step.
+All 21 coin pages are statically generated at build time. The chart endpoint is server-rendered with 60-second revalidation. Cache invalidation happens automatically — there is no manual step.
 
 ---
 

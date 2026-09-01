@@ -1,5 +1,5 @@
 /**
- * coins.ts — 14-coin catalog.
+ * coins.ts — 21-coin catalog.
  *
  * Single source of truth for which coins ship in the dashboard, plus their
  * display metadata (glyph, color, decimals, kind).
