@@ -64,17 +64,6 @@ Yugen is engineered for extreme transparency and speed.
 
 ---
 
-## 🔍 Data Sources
-
-```
-Price / Market Cap / Supply  →  CoinGecko (Multi-API Fallback)
-Social Feed                  →  Reddit JSON API (Server-side UA)
-Funding Rates                →  Binance Futures API
-Liquidity Depth              →  DexScreener API
-```
-
----
-
 ## 📂 Project Structure
 
 ```
@@ -112,20 +101,11 @@ npm run build  # Static generation of all 21 coin pages
 
 ---
 
-## 🗺 Roadmap
-
-Our rule: **Don't add anything that requires a key, an account, or opaque weighting.**
-
-- [ ] Expand sentiment analysis to broader social datasets.
-- [ ] Implement public RSS alerts for unusual volume/volatility.
-- [ ] Refine the Relative Normalization engine for multi-year comparisons.
-
----
-
 ## ⚖️ License
 
 MIT — see [`LICENSE`](./LICENSE).
 
 **Acknowledgments:**
 - Data: [CoinGecko](https://www.coingecko.com), [Reddit](https://www.reddit.com), [Binance](https://www.binance.com), [DexScreener](https://dexscreener.com)
+- Resources: [CryptoPanic](https://cryptopanic.com/), [DefiLlama](https://defillama.com/)
 - Charting: [Apache ECharts](https://echarts.apache.org/)
