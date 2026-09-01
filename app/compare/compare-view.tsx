@@ -254,11 +254,14 @@ function buildOption(
     series: empty
       ? []
       : series.map((s) => {
-          const first = s.points[0]?.[1] ?? 0;
+          const firstPrice = s.points[0]?.[1] ?? 0;
           return {
             type: "line",
             name: s.symbol,
-            data: s.points.map(([t, p]) => [t, first > 0 ? (p / first) * 100 : p]),
+            data: s.points.map(([t, p], i) => [
+              xs[i] ?? t,
+              firstPrice > 0 ? (p / firstPrice) * 100 : p
+            ]),
             smooth: true,
             symbol: "none",
             lineStyle: { color: s.color, width: 2 },

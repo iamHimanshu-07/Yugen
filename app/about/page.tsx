@@ -1,13 +1,15 @@
 /**
- * /about — the Yugen story. Server-rendered, follows the design system but
- * uses a slightly more relaxed typographic rhythm than the marketing pages.
+ * /about — the Yugen manifesto and technical history.
+ *
+ * A deep-dive into the philosophy of "reading the depth" and the
+ * architectural decisions that make the dashboard fast, verifiable, and honest.
  */
 import Link from "next/link";
 
 export const metadata = {
   title: "About — Yugen",
   description:
-    "The story behind Yugen: what it is, who it's for, how it's built, and where it goes next.",
+    "The story behind Yugen: a commitment to verifiable data, institutional-grade signals, and the aesthetic of the unseen.",
 };
 
 export default function AboutPage() {
@@ -17,7 +19,7 @@ export default function AboutPage() {
         <div className="section">
           <div className="hero-eyebrow" style={{ marginBottom: 28 }}>
             <span className="dot" />
-            <span>about · read the depth</span>
+            <span>manifesto · read the depth</span>
           </div>
           <h1 className="h-display" style={{ maxWidth: 880 }}>
             Yugen is a dashboard
@@ -37,95 +39,119 @@ export default function AboutPage() {
       </section>
 
       <Section
-        eyebrow="What it is"
-        title="A live, no-account dashboard for 21 coins."
+        eyebrow="The Philosophy"
+        title="Read the depth, not the noise."
       >
         <p>
-          Yugen pulls price, market cap, supply, sentiment and social signal for the
-          coins that actually move the market — Bitcoin, Ethereum, Solana, the stables, and
-          the privacy coins. No account, no API keys, no scraping, no fake numbers.
+          Most crypto dashboards are designed for the foreground: flashing prices,
+          hyper-active candles, and a deluge of indicators that create an illusion of
+          control. We call this the <strong>trading-terminal trap</strong>. When everything
+          is highlighted, nothing is important.
         </p>
-        <p>
-          Every value on the page traces back to a public, free data source you can verify
-          in 30 seconds. CoinGecko for prices, Reddit for social signal, Binance for funding,
-          and DexScreener for liquidity. Nothing else.
-        </p>
-      </Section>
-
-      <Section
-        eyebrow="Why it exists"
-        title="Two failure modes in crypto dashboards."
-      >
-        <p>
-          There are two failure modes in crypto dashboards. The first is the
-          <strong> trading-terminal trap</strong> — spinning numbers, seven columns of indicators,
-          a chart so dense you can&apos;t see the price. The depth disappears under the noise.
-        </p>
-        <p>
-          The second is the <strong>Streamlit trap</strong> — a research notebook dressed up
-          as a product. Slow, ugly, auth-walled, or worse: fake data behind the curtain.
-        </p>
-        <p>
-          Yugen is the third path: the visual polish of a product launch, the data integrity
-          of a research tool, the open-ness of a public utility. Every chart, every metric,
-          every post links back to a source you can hit yourself.
-        </p>
-      </Section>
-
-      <Section
-        eyebrow="The name"
-        title="A Japanese aesthetic principle."
-      >
         <p>
           <em>Yugen</em> is a Japanese aesthetic principle — the awareness that the most
           important things in a scene are the ones not in the foreground. A mountain hidden
           by mist. The pause before a phrase. The supply behind a price.
         </p>
         <p>
-          Most crypto dashboards show you the foreground. Yugen shows you the depth — the
-          supply, the sentiment, the social feed, the data source for every value on the page.
-          We chose the name because we built the product for it.
+          We built Yugen to shift the focus from <em>what</em> is happening to <em>why</em> it
+          is happening. By stripping away the noise, we reveal the depth: the circulating
+          supply, the social sentiment, and the institutional signals that actually drive
+          market movement.
         </p>
       </Section>
 
       <Section
-        eyebrow="How it's built"
-        title="Next.js 16 on the edge, free data sources."
+        eyebrow="The Architecture"
+        title="Built for speed, designed for honesty."
       >
         <p>
-          Yugen is a <strong>Next.js 16</strong> app running on Vercel&apos;s edge. Every
-          coin page is statically generated at build time and revalidated every 60 seconds.
-          The chart endpoint is a Route Handler that proxies CoinGecko&apos;s market-chart through
-          an in-memory LRU so the upstream URL stays out of the client bundle.
+          The technical goal for Yugen was simple: <strong>zero friction</strong>. No accounts,
+          no API keys, and no waiting. To achieve this, we built a high-performance pipeline
+          using Next.js 16 on the edge.
         </p>
-        <p>
-          The price chart is <strong>Apache ECharts</strong>, loaded only on the client via
-          dynamic import. The dashboard layout is hand-rolled CSS — no shadcn/ui, no
-          @radix-ui, no design-system library. Six primitives, all hand-built.
-        </p>
-        <p>
-          <strong>No database. No accounts. No API keys.</strong> The whole app boots from
-          a fresh clone in under a minute, and the deployment is a single command.
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 24 }} className="md:grid-cols-1">
+          <div className="card" style={{ padding: 20, background: "rgba(255,255,255,0.02)" }}>
+            <div style={{ fontWeight: 800, marginBottom: 8, color: "var(--accent)" }}>Multi-API Fallback</div>
+            <div style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6 }}>
+              To ensure 100% uptime, Yugen uses a parallel fallback chain:
+              CoinGecko &rarr; CoinPaprika &rarr; Binance &rarr; KuCoin. If one source
+              stutters, the dashboard remains live.
+            </div>
+          </div>
+          <div className="card" style={{ padding: 20, background: "rgba(255,255,255,0.02)" }}>
+            <div style={{ fontWeight: 800, marginBottom: 8, color: "var(--accent)" }}>Single-Flight Requests</div>
+            <div style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6 }}>
+              During parallel page generation, we implement a request-coalescing pattern
+              that prevents "thundering herd" API calls, keeping our upstream sources
+              healthy and our build times lean.
+            </div>
+          </div>
+        </div>
+        <p style={{ marginTop: 24 }}>
+          Every coin page is statically generated and revalidated every 60 seconds.
+          The result is a site that feels like a local app but scales to thousands of users.
         </p>
       </Section>
 
       <Section
-        eyebrow="Where it goes"
-        title="Honest extensions, not more features."
+        eyebrow="Pro Signals"
+        title="Beyond the price candle."
       >
         <p>
-          The roadmap is constrained by one rule: <em>don&apos;t add anything that requires a
-          key, an account, or opaque weighting.</em> Current focus is on expanding high-fidelity
-          signals:
+          Price is a lagging indicator. To read the depth, you need leading signals.
+          Yugen incorporates institutional-grade data typically reserved for professional
+          terminals:
         </p>
-        <ul style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.7, paddingLeft: 22 }}>
-          <li>Refining sentiment analysis by incorporating broader social datasets beyond Reddit.</li>
-          <li>Expanding the catalog to 25+ coins as new market leaders emerge.</li>
-          <li>Implementing public RSS alerts for unusual volume or price volatility sourced from open APIs.</li>
+        <ul style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.8, paddingLeft: 22, marginTop: 16 }}>
+          <li>
+            <strong style={{ color: "var(--text)" }}>Funding Rates:</strong> Pulled live from
+            Binance Futures to detect market bias. High positive funding suggests
+            over-leveraged longs; negative suggests a short-squeeze potential.
+          </li>
+          <li style={{ marginTop: 8 }}>
+            <strong style={{ color: "var(--text)" }}>Liquidity Depth:</strong> Sourced via
+            DexScreener to measure "exit capacity". We show you if a coin has the
+            liquidity to support its market cap or if it's a liquidity trap.
+          </li>
+          <li style={{ marginTop: 8 }}>
+            <strong style={{ color: "var(--text)" }}>Social Signal:</strong> Real-time
+            sentiment analysis from Reddit, providing a raw pulse of the community
+            without the filter of "influencer" narratives.
+          </li>
         </ul>
-        <p style={{ marginTop: 16 }}>
-          What we won&apos;t add: WebSocket price spam, paid tiers, watchlists that require
-          an account, ads, tokens. The depth is the product.
+      </Section>
+
+      <Section
+        eyebrow="The Comparison Engine"
+        title="Relative performance, normalized."
+      >
+        <p>
+          Comparing Bitcoin ($60k) to Dogecoin ($0.10) on a linear scale is useless.
+          Yugen solves this through <strong>Relative Normalization</strong>.
+        </p>
+        <p>
+          Our engine snaps every selected coin to a baseline of 100 at the start of the
+          chosen date range. The resulting lines represent the <em>percentage change</em>
+          from that point. This allows you to see exactly which asset is outperforming the
+          others, regardless of their nominal price.
+        </p>
+      </Section>
+
+      <Section
+        eyebrow="The Ethos"
+        title="Verifiable. Open. Honest."
+      >
+        <p>
+          The biggest problem in crypto data is the "black box" — proprietary weights,
+          opaque aggregators, and hidden fees. Yugen is the antidote.
+        </p>
+        <p>
+          We use no proprietary algorithms. Every value on every page is a direct
+          reflection of a public data source. If a number is missing, we show
+          <code style={{ color: "var(--accent)" }}>—</code>, not a guess. We believe
+          that the only way to build trust in this industry is to provide a
+          transparent path back to the source.
         </p>
       </Section>
 
@@ -161,7 +187,6 @@ function Section({
   title: string;
   children: React.ReactNode;
 }) {
-  // Generate ID from eyebrow for anchor links
   const sectionId = eyebrow
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

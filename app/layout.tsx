@@ -119,7 +119,9 @@ async function SiteFooter() {
         <div>
           <h4>Resources</h4>
           <ul>
-            <li><a href="/about">The story</a></li>
+            <li><a href="https://cryptopanic.com" target="_blank" rel="noopener">CryptoPanic ↗</a></li>
+            <li><a href="/feed.xml">RSS Feed</a></li>
+            <li><a href="https://defillama.com" target="_blank" rel="noopener">DefiLlama ↗</a></li>
             <li><a href="https://github.com/iamHimanshu-07/Yugen" target="_blank" rel="noopener">GitHub ↗</a></li>
           </ul>
         </div>
