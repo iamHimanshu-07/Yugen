@@ -1,4 +1,4 @@
-# Yugen 
+# Yugen ◬
 
 > A live, no-account crypto dashboard for the 21 coins that actually move the market.
 
@@ -8,254 +8,124 @@
 
 ---
 
-## What is Yugen?
+## 🌑 About Yugen
 
-Yugen is a polished, fast, opinionated crypto dashboard that surfaces **price, supply, sentiment and social signal** for the coins that matter — Bitcoin, Ethereum, Solana, the stables, the privacy coins. No account, no API keys, no scraping, no fake numbers.
+**Yugen** is a Japanese aesthetic principle — the awareness that the most important things in a scene are the ones not in the foreground. A mountain hidden by mist. The pause before a phrase. The supply behind a price.
 
-Every value on the page traces back to a public, free data source you can verify in 30 seconds. CoinGecko for prices. Reddit for social signal. Nothing else.
+Most crypto dashboards suffer from two failure modes:
+1. **The Trading-Terminal Trap**: Spinning numbers, dense indicators, and a deluge of noise that creates an illusion of control while obscuring the actual price action.
+2. **The Research Notebook Trap**: Slow, ugly, auth-walled interfaces that often hide fake or simulated data behind a "professional" curtain.
 
-> **Yugen** is a Japanese aesthetic principle — the awareness that the most important things in a scene are the ones not in the foreground. A mountain hidden by mist. The pause before a phrase. The supply behind a price.
+**Yugen is the third path.** It combines the visual polish of a modern product with the data integrity of a research tool and the openness of a public utility. It is a dashboard that knows what to leave out, shifting the focus from *what* is happening to *why* it is happening.
 
----
-
-## Highlights
-
-- ⚡ **Edge-rendered** — Next.js 16 Server Components + Route Handlers, deployed on Vercel
-- 📊 **Interactive chart** — Apache ECharts with 24H / 1W / 1M / 1Y range tabs, re-fetched via Route Handler
-- 🔎 **21-coin catalog** — Bitcoin, Ethereum, BNB, Solana, XRP, ADA, TRX, LINK, XLM, ZEC, XMR, DOGE, USDT, USDC, and others
-- 🔍 **Search / filter / sort** — live client-side over the 21 cards
-- 🐦 **Real social signal** — Reddit JSON endpoint, server-side fetch with User-Agent, deterministic mock fallback
-- 🧠 **Stable sentiment** — labelled "OPEN DATA · Last 7d", deterministic per-coin hash so numbers don't flicker
-- 🌑 **Premium dark theme** — `#0A0B0F` base, `#FF6A1A` Bitcoin-coded accent, hairline borders, 18px card radius
-- 📈 **Static-first** — all 21 coin pages pre-rendered at build, chart revalidates every 60 s
-- 🛟 **Graceful failure** — custom 404, loading skeleton, error boundary, live upstream status indicator
+### ◬ Read the Depth
+We don't just show the price candle; we surface the underlying signals that drive the market:
+- **Funding Rates**: Live bias detection from Binance Futures to spot over-leveraged positions.
+- **Liquidity Depth**: Exit capacity analysis via DexScreener to identify liquidity traps.
+- **Social Pulse**: Real-time community sentiment aggregated from raw Reddit data.
+- **Relative Normalization**: A comparison engine that snaps assets to a 100% baseline, allowing you to compare $60k BTC vs $0.10 DOGE on the same axis.
 
 ---
 
-## Features
+## ⚡ Highlights
 
-### Landing page (`/`)
-
-9 hand-built sections in order:
-
-1. **Hero** — gradient headline, eyebrow with read-the-depth tagline, dual CTA
-2. **KPI strip** — 21 coins · ~1.2M price points / day · 2 open sources
-3. **"See it work"** — before/after panels comparing a plain ticker to the full dashboard
-4. **"Measured, not claimed"** — three metric tiles with bar fills (page-load latency, source coverage)
-5. **Pipeline diagram** — 5 nodes from request to render
-6. **"How it works"** — 3-step numbered breakdown
-7. **Three-pillar grid** — Real-time · On-chain aware · Open data
-8. **"Why Yugen"** — brand-story block with the Japanese aesthetic + 4 supporting cards
-9. **CTA band** — full-bleed gradient, launch / Bitcoin deep-link
-
-### Markets (`/markets`)
-
-- 21-card catalog grid
-- Live search across name + symbol
-- Kind filter (All / L1 / Privacy / Meme / Stable)
-- Sort by rank / 24h change / price
-- 7-day sparkline per card
-- Combined cap + 24h volume rollups at the top
-- Live CoinGecko prices, 60 s revalidate
-
-### Coin detail (`/coin/[id]`)
-
-Bitcoin-style 3-column dashboard per coin:
-
-- **Left** — Profile score, market cap, 24h volume, 24h high/low, ATH/ATL, supply (circulating / total / max)
-- **Center** — ECharts price chart with **24H / 1W / 1M / 1Y** range tabs that re-fetch via Route Handler, community sentiment bar with bull/bear split, "About this coin" card, social feed
-- **Right** — hot topics, related coins, market rank, community stats (Twitter followers, Reddit subs, 48h active accounts)
-
-Server-rendered, all 21 pages pre-generated at build time via `generateStaticParams`.
-
-### API route
-
-`GET /api/chart/[id]?days=N` — proxies CoinGecko market-chart through the server-side cache (60 s revalidate), keeps the upstream URL out of the client bundle.
-
-### About (`/about`)
-
-On-site brand story: what Yugen is, who it's for, why it exists, how it's built, where it's going.
+- **Edge-First Architecture** — Next.js 16 Server Components deployed on Vercel for sub-500ms loads.
+- **Verifiable Data** — Every single value traces back to a public, free data source (CoinGecko, Reddit, Binance, DexScreener). No black boxes.
+- **21-Coin Catalog** — A curated selection of L1s, Stables, Privacy coins, and Memes that actually move the needle.
+- **Zero Friction** — No accounts, no API keys, no sign-ups. Open the link, read the depth.
+- **Premium Aesthetic** — A hand-rolled design system using a `#0A0B0F` deep-dark palette and the signature Yugen glyph `◬`.
 
 ---
 
-## Stack
+## 🛠 Technical Architecture
+
+### The Pipeline
+Yugen is engineered for extreme transparency and speed.
+`Request` $\rightarrow$ `Edge Runtime` $\rightarrow$ `Multi-API Fallback` $\rightarrow$ `Single-Flight Coalescing` $\rightarrow$ `SSG Revalidation (60s)` $\rightarrow$ `Client Render`.
+
+### Core Features
+- **Markets (`/markets`)**: A high-performance grid with live search, kind-filtering, and 7-day sparklines.
+- **Coin Detail (`/coin/[id]`)**: A dedicated dashboard per coin featuring professional KPI blocks and a normalized price chart.
+- **Comparison Engine (`/compare`)**: A relative performance tool that normalizes all price series to 100 at the start of the range.
+- **How It Works (`/how-it-works`)**: A dedicated technical breakdown of the data pipeline and architectural choices.
+
+---
+
+## 📦 Stack
 
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | **Next.js 16.2** | App Router, Server Components, `params: Promise`, route handlers, `viewport` export |
-| Runtime | **React 19.2** | Server-first, `"use client"` only for the chart |
-| Language | **TypeScript 5** | strict |
-| Styling | **Tailwind CSS v4** | `@theme inline` tokens in `globals.css`, no `tailwind.config.ts` |
-| Charts | **Apache ECharts** | via `echarts-for-react`, dynamic import, `ssr: false` |
-| Data — prices | **CoinGecko** | free tier, `/coins/markets`, `/coins/{id}`, `/coins/{id}/market_chart` |
-| Data — social | **Reddit JSON** | `.json` suffix trick, server-side fetch with User-Agent |
-| Utility deps | **lucide-react · clsx · tailwind-merge** | only what's needed |
-| Deploy | **Vercel** | Edge-rendered HTML, free tier, no env vars |
-
-**No auth. No database. No API keys.** The whole app boots from a fresh clone in under a minute.
+| Framework | **Next.js 16.3** | App Router, Server Components, Edge Runtime |
+| Runtime | **React 19.2** | Server-first rendering, dynamic client imports |
+| Styling | **Tailwind CSS v4** | `@theme` inline tokens, zero config |
+| Charts | **Apache ECharts** | High-performance canvas rendering for time-series |
+| Data | **Multi-Source** | CoinGecko, Reddit, Binance, DexScreener |
+| Deploy | **Vercel** | Global Edge Network, automatic ISR revalidation |
 
 ---
 
-## Data sources
+## 🔍 Data Sources
 
 ```
-Price / market cap / supply / sparkline  →  CoinGecko /coins/markets, /coins/{id}, /coins/{id}/market_chart
-Social feed                                →  Reddit search.json (no key, .json suffix trick, server-side UA)
-Community sentiment                        →  deterministic mock labelled "OPEN DATA · Last 7d"
+Price / Market Cap / Supply  →  CoinGecko (Multi-API Fallback)
+Social Feed                  →  Reddit JSON API (Server-side UA)
+Funding Rates                →  Binance Futures API
+Liquidity Depth              →  DexScreener API
 ```
-
-The sentiment number is intentionally **not real-time**. It's generated from a stable per-coin hash so the number doesn't flicker between renders, and the UI labels it accordingly. To wire a real source, replace `lib/sentiment.ts` — every page picks it up automatically. (Free options: CryptoPanic, LunarCrush, Santiment.)
 
 ---
 
-## Design system
-
-Premium dark palette, single source of truth in `app/globals.css`:
+## 📂 Project Structure
 
 ```
---bg          #0A0B0F   deeper than the reference sites, more "premium"
---panel       #11141B
---panel-2     #161A23
---border      rgba(255,255,255,0.06)   hairline, not shadow
---text        #F5F7FA
---muted       #8A93A6
---accent      #FF6A1A   Bitcoin-coded orange — picked so it reads as the canonical
-                        crypto orange without colliding with the Bitcoin reference
-                        color most coin pages default to
---bull        #16C784   /  --bear  #EA3943
-```
-
-**Typography:** Inter 800 with `-0.045em` letter-spacing on display, JetBrains Mono for numbers (so columns of prices align), Greek-style accent glyph `◬` in eyebrows.
-
-**Pattern language:** sticky blurred top nav, watermark glyph `◬` bottom-right via `app-shell::before`, range-tab pills, KPI strip, pipeline diagram, full-bleed CTA with grid mask, hairline borders, 18px card radius, 96 px section padding.
-
----
-
-## Project structure
-
-```
-crypto-dashboard/
+yugen/
 ├── app/
-│   ├── layout.tsx                       # Root layout, fonts, watermark shell, async footer
-│   ├── page.tsx                         # Landing — 11 sections
-│   ├── about/page.tsx                   # /about — brand story
-│   ├── markets/page.tsx                 # Catalog index
-│   ├── coin/[id]/
-│   │   ├── page.tsx                     # Per-coin detail dashboard
-│   │   ├── loading.tsx                  # Brand skeleton during CoinGecko fetch
-│   │   └── opengraph-image.tsx          # Per-coin OG card (1200×630)
-│   ├── api/chart/[id]/route.ts          # CoinGecko market-chart proxy (60 s revalidate)
-│   ├── opengraph-image.tsx              # Landing OG card
-│   ├── sitemap.ts                       # /sitemap.xml
-│   ├── robots.ts                        # /robots.txt
-│   ├── not-found.tsx                    # 404
-│   ├── error.tsx                        # Root error boundary
-│   └── globals.css                      # Tailwind v4 + design tokens
+│   ├── layout.tsx              # Root layout, watermark shell, async footer
+│   ├── page.tsx                # Landing page (Manifesto + KPI strip)
+│   ├── about/page.tsx          # The Yugen Manifesto
+│   ├── how-it-works/page.tsx   # Technical architecture guide
+│   ├── markets/page.tsx        # 21-coin catalog index
+│   ├── coin/[id]/              # Per-coin detailed dashboards
+│   └── api/                    # Route handlers for charts and data proxies
 ├── components/
-│   ├── nav.tsx                          # Sticky top nav
-│   ├── status-indicator.tsx             # Server-side CoinGecko probe → footer pill
-│   ├── market/catalog-grid.tsx          # Client: search/filter/sort over 21 rows
-│   └── coin-detail/
-│       ├── price-chart.tsx              # ECharts wrapper, range tabs (24H/1W/1M/1Y)
-│       ├── sentiment-bar.tsx            # Bull/bear split + action buttons
-│       ├── social-feed.tsx              # Reddit posts with verified badges
-│       ├── hot-topics.tsx               # Trending tags per coin
-│       └── related-coins.tsx            # 4 mini cards linking to other catalog coins
-├── lib/
-│   ├── coins.ts                         # 21-coin catalog
-│   ├── coingecko.ts                     # Server-side fetchers + in-memory LRU
-│   ├── reddit.ts                        # Reddit JSON fetcher + deterministic mock
-│   ├── sentiment.ts                     # Stable mock sentiment per coin
-│   └── utils.ts                         # cn(), fmtUSD, fmtBigUSD, fmtPct, hashString
-├── public/favicon.svg                   # Custom Yugen glyph
-├── next.config.ts
-├── postcss.config.mjs
-├── tsconfig.json
-├── package.json
-└── README.md
+│   ├── nav.tsx                 # Sticky blurred top navigation
+│   ├── coin-detail/            # Specialized KPI, Chart, and Feed components
+│   └── market/                 # Catalog grid and filtering logic
+└── lib/
+    ├── coingecko.ts            # Server-side fetchers with parallel fallback
+    ├── exchange.ts             # Professional signals (Funding/Liquidity)
+    ├── coins.ts               # Authoritative 21-coin catalog
+    └── utils.ts               # Formatting and deterministic hashing
 ```
 
 ---
 
-## Run it
+## 🚀 Run & Deploy
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
-npm run build        # Static + SSG: all 21 coin pages prerender
-npm start
+npm run dev    # Local development (http://localhost:3000)
+npm run build  # Static generation of all 21 coin pages
 ```
 
-No environment variables required. No API keys. The whole app boots from a fresh clone in under a minute.
+**Production:** Deployed on Vercel at [yugen-x.vercel.app](https://yugen-x.vercel.app).
 
 ---
 
-## Deploy
+## 🗺 Roadmap
 
-```bash
-npx vercel           # preview deploy to the yugen project
-npx vercel --prod    # explicit production promotion (only when you're ready)
-```
+Our rule: **Don't add anything that requires a key, an account, or opaque weighting.**
 
-The current production deployment is at:
-
-> **[yugen-x.vercel.app](https://yugen-x.vercel.app)**
-
-All 21 coin pages are statically generated at build time. The chart endpoint is server-rendered with 60-second revalidation. Cache invalidation happens automatically — there is no manual step.
+- [ ] Expand sentiment analysis to broader social datasets.
+- [ ] Implement public RSS alerts for unusual volume/volatility.
+- [ ] Refine the Relative Normalization engine for multi-year comparisons.
 
 ---
 
-## Performance
-
-- **Lighthouse landing:** ≥ 95 perf, ≥ 95 a11y / best-practices on a clean build
-- **Largest contentful paint:** < 1.0 s on edge-rendered HTML
-- **Time-to-interactive:** < 1.5 s (ECharts is the only meaningful client JS, lazy-loaded)
-- **Per-coin pages:** statically generated at build, served as pre-rendered HTML from the edge
-
----
-
-## Why Yugen, not "Crypto Dashboard"?
-
-There are two failure modes in crypto dashboards:
-
-1. **The trading-terminal trap.** Spinning numbers, seven columns of indicators, a chart so dense you can't see the price. The depth disappears under the noise.
-2. **The Streamlit trap.** A research notebook dressed up as a product. Slow, ugly, auth-walled, or worse — fake data behind the curtain.
-
-Yugen is the third path: the visual polish of a product launch, the data integrity of a research tool, the open-ness of a public utility. Every chart, every metric, every post links back to a source you can hit yourself.
-
----
-
-## Roadmap
-
-The roadmap is constrained by one rule: **don't add anything that requires a key, an account, or opaque weighting.**
-
-- [ ] Wire a real sentiment source (CryptoPanic / LunarCrush — free tiers exist) when the catalog needs it
-- [ ] Expand the catalog once a meaningful 15th coin (e.g. stablecoin peg stability) is requested
-- [ ] Public RSS feed of "unusual activity" alerts sourced from the existing CoinGecko response
-
-What we **won't** add: WebSocket price spam, paid tiers, watchlists that require an account, ads, tokens. The depth is the product.
-
----
-
-## Out of scope (intentional)
-
-- Accounts, sign-in, persisted watchlists
-- Real-time WebSocket price streaming (we revalidate every 60 s)
-- Mobile native apps
-- i18n (English only)
-- Tests beyond the production build (TS strict + `next build` is the smoke test)
-- shadcn/ui (the 6 primitives we need are hand-rolled; pulling in `@radix-ui` is overkill for this surface)
-
----
-
-## License
+## ⚖️ License
 
 MIT — see [`LICENSE`](./LICENSE).
 
----
-
-## Acknowledgments
-
-- Data: [CoinGecko](https://www.coingecko.com), [Reddit](https://www.reddit.com)
+**Acknowledgments:**
+- Data: [CoinGecko](https://www.coingecko.com), [Reddit](https://www.reddit.com), [Binance](https://www.binance.com), [DexScreener](https://dexscreener.com)
 - Charting: [Apache ECharts](https://echarts.apache.org/)
-- Source: [github.com/iamHimanshu-07/Yugen](https://github.com/iamHimanshu-07/Yugen)
