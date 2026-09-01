@@ -108,7 +108,7 @@ export default async function OG() {
               flexDirection: "column",
             }}
           >
-            <div style={{ display: "flex" }}>14 coins. Live price,</div>
+            <div style={{ display: "flex" }}>21 coins. Live price,</div>
             <div style={{ color: "#FF8E3C", display: "flex" }}>real sentiment.</div>
           </div>
           <div
@@ -142,7 +142,7 @@ export default async function OG() {
             <div style={{ display: "flex", fontFamily: "Symbols" }}>Bitcoin ₿</div>
             <div style={{ display: "flex", fontFamily: "Symbols" }}>Ethereum Ξ</div>
             <div style={{ display: "flex", fontFamily: "Symbols" }}>Solana ◎</div>
-            <div style={{ display: "flex" }}>+ 11 more</div>
+            <div style={{ display: "flex" }}>+ 18 more</div>
           </div>
           <div style={{ color: "#FF6A1A", display: "flex" }}>yugen-x.vercel.app →</div>
         </div>

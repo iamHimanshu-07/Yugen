@@ -1,7 +1,7 @@
 /**
  * /compare — Multi-coin normalized price chart.
  *
- * Pick up to 3 coins and overlay their prices normalized to 100 at the start
+ * Pick up to 7 coins and overlay their prices normalized to 100 at the start
  * of the selected range. Useful for "did BTC actually outperform ETH?" or
  * "is SOL catching up to BNB?" questions that the single-coin chart can't
  * answer.
@@ -48,7 +48,7 @@ export default function ComparePage() {
         <h1 className="h-section" style={{ fontSize: "clamp(28px, 3.6vw, 40px)" }}>
           Up to 7 coins. Normalized to 100.
         </h1>
-        <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 720 }}>
+        <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 1200 }}>
           Each series starts at 100 at the beginning of the selected range, so coins with different price scales 
           (think $60k BTC vs $0.08 DOGE) sit on the same axes. The number you read is percent change from the range start.
         </p>

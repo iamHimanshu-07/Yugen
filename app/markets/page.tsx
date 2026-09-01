@@ -13,7 +13,7 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Markets — Yugen",
-  description: "The 14 coins that actually matter. Live market data including rank, price, changes, volume and supply.",
+  description: "The 21 coins that actually matter. Live market data including rank, price, changes, volume and supply.",
 };
 
 export default async function MarketsPage() {

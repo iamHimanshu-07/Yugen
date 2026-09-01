@@ -1,6 +1,6 @@
 # Yugen 
 
-> A live, no-account crypto dashboard for the 14 coins that actually move the market.
+> A live, no-account crypto dashboard for the 21 coins that actually move the market.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org) [![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev) [![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8)](https://tailwindcss.com) [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)](https://www.typescriptlang.org) [![License](https://img.shields.io/badge/license-MIT-blue)](#license) [![Vercel](https://img.shields.io/badge/deploy-Vercel-000)](https://vercel.com)
 
@@ -22,12 +22,12 @@ Every value on the page traces back to a public, free data source you can verify
 
 - ⚡ **Edge-rendered** — Next.js 16 Server Components + Route Handlers, deployed on Vercel
 - 📊 **Interactive chart** — Apache ECharts with 24H / 1W / 1M / 1Y range tabs, re-fetched via Route Handler
-- 🔎 **14-coin catalog** — Bitcoin, Ethereum, BNB, Solana, XRP, ADA, TRX, LINK, XLM, ZEC, XMR, DOGE, USDT, USDC
+- 🔎 **21-coin catalog** — Bitcoin, Ethereum, BNB, Solana, XRP, ADA, TRX, LINK, XLM, ZEC, XMR, DOGE, USDT, USDC, and others
 - 🔍 **Search / filter / sort** — live client-side over the 14 cards
 - 🐦 **Real social signal** — Reddit JSON endpoint, server-side fetch with User-Agent, deterministic mock fallback
 - 🧠 **Stable sentiment** — labelled "OPEN DATA · Last 7d", deterministic per-coin hash so numbers don't flicker
 - 🌑 **Premium dark theme** — `#0A0B0F` base, `#FF6A1A` Bitcoin-coded accent, hairline borders, 18px card radius
-- 📈 **Static-first** — all 14 coin pages pre-rendered at build, chart revalidates every 60 s
+- 📈 **Static-first** — all 21 coin pages pre-rendered at build, chart revalidates every 60 s
 - 🛟 **Graceful failure** — custom 404, loading skeleton, error boundary, live upstream status indicator
 
 ---
@@ -39,7 +39,7 @@ Every value on the page traces back to a public, free data source you can verify
 9 hand-built sections in order:
 
 1. **Hero** — gradient headline, eyebrow with read-the-depth tagline, dual CTA
-2. **KPI strip** — 14 coins · ~1.2M price points / day · 2 open sources
+2. **KPI strip** — 21 coins · ~1.2M price points / day · 2 open sources
 3. **"See it work"** — before/after panels comparing a plain ticker to the full dashboard
 4. **"Measured, not claimed"** — three metric tiles with bar fills (page-load latency, source coverage)
 5. **Pipeline diagram** — 5 nodes from request to render
@@ -50,7 +50,7 @@ Every value on the page traces back to a public, free data source you can verify
 
 ### Markets (`/markets`)
 
-- 14-card catalog grid
+- 21-card catalog grid
 - Live search across name + symbol
 - Kind filter (All / L1 / Privacy / Meme / Stable)
 - Sort by rank / 24h change / price
@@ -66,7 +66,7 @@ Bitcoin-style 3-column dashboard per coin:
 - **Center** — ECharts price chart with **24H / 1W / 1M / 1Y** range tabs that re-fetch via Route Handler, community sentiment bar with bull/bear split, "About this coin" card, social feed
 - **Right** — hot topics, related coins, market rank, community stats (Twitter followers, Reddit subs, 48h active accounts)
 
-Server-rendered, all 14 pages pre-generated at build time via `generateStaticParams`.
+Server-rendered, all 21 pages pre-generated at build time via `generateStaticParams`.
 
 ### API route
 

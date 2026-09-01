@@ -25,7 +25,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Yugen",
   description:
-    "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts, no made-up numbers.",
+    "Live price, sentiment, and social signal for the 21 coins that actually matter. No API keys, no accounts, no made-up numbers.",
   metadataBase: new URL("https://yugen-x.vercel.app"),
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Yugen" ,
     description:
-      "Live price, sentiment, and social signal for the 14 coins that actually matter. No API keys, no accounts.",
+      "Live price, sentiment, and social signal for the 21 coins that actually matter. No API keys, no accounts.",
     type: "website",
     url: "https://yugen-x.vercel.app",
     siteName: "Yugen",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Yugen — read the depth",
     description:
-      "Live price, sentiment, and social signal for the 14 coins that actually matter.",
+      "Live price, sentiment, and social signal for the 21 coins that actually matter.",
   },
 };
 
@@ -119,10 +119,9 @@ async function SiteFooter() {
         <div>
           <h4>Resources</h4>
           <ul>
-            <li><a href="https://cryptopanic.com" target="_blank" rel="noopener">CryptoPanic ↗</a></li>
-            <li><a href="/feed.xml">RSS Feed</a></li>
-            <li><a href="https://defillama.com" target="_blank" rel="noopener">DefiLlama ↗</a></li>
             <li><a href="https://github.com/iamHimanshu-07/Yugen" target="_blank" rel="noopener">GitHub ↗</a></li>
+            <li><a href="https://defillama.com" target="_blank" rel="noopener">DefiLlama ↗</a></li>
+            <li><a href="https://cryptopanic.com" target="_blank" rel="noopener">CryptoPanic ↗</a></li>
           </ul>
         </div>
         <div>

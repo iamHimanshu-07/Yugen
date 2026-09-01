@@ -59,7 +59,7 @@ export default function NotFound() {
         }}
       >
         Either the URL is wrong, or this is one of the &gt;12,000 coins we deliberately
-        didn&apos;t track. Yugen focuses on the 14 that actually matter — pick one below.
+        didn&apos;t track. Yugen focuses on the 21 that actually matter — pick one below.
       </p>
 
       <div
@@ -76,7 +76,7 @@ export default function NotFound() {
           className="btn btn-primary"
           style={{ height: 52, padding: "0 24px", fontSize: 15 }}
         >
-          Browse the 14 coins →
+          Browse the 21 coins →
         </Link>
         <Link
           href="/coin/bitcoin"

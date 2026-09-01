@@ -42,7 +42,7 @@ export default function TermsPage() {
           <span>What it is</span>
         </div>
         <h2 className="h-section" style={{ fontSize: "clamp(24px, 3vw, 34px)" }}>
-          A live, no-account dashboard for 14 coins.
+          A live, no-account dashboard for 21 coins.
         </h2>
         <div style={{ color: "var(--muted)", fontSize: 16, lineHeight: 1.7, maxWidth: 720 }}>
           <p>
