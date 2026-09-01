@@ -5,6 +5,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { TopNav } from "@/components/nav";
+import { Analytics } from "@vercel/analytics/next";
 import { StatusIndicator } from "@/components/status-indicator";
 import "./globals.css";
 
@@ -71,6 +72,7 @@ export default async function RootLayout({
           <main style={{ position: "relative", zIndex: 1 }}>{children}</main>
           {footer}
         </div>
+        <Analytics />
       </body>
     </html>
   );
