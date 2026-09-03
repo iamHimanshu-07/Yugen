@@ -6,8 +6,9 @@
  */
 
 import Link from "next/link";
-import { fetchNews } from "@/lib/news";
+import { fetchNews, fetchNewsForCurrencies } from "@/lib/news";
 import { NewsFeed } from "@/components/news/news-feed";
+import { listCoins } from "@/lib/coins";
 
 export const revalidate = 300;
 
@@ -16,15 +17,26 @@ export const metadata = {
   description: "Latest crypto news from CryptoPanic, CoinDesk, Cointelegraph, The Block, and Decrypt.",
 };
 
-export default async function NewsPage() {
-  let initialItems: Awaited<ReturnType<typeof fetchNews>> = [];
+export default async function NewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ coin?: string }>;
+}) {
+  const { coin } = await searchParams;
+  let initialItems: any[] = [];
   let loadError: string | null = null;
 
   try {
-    initialItems = await fetchNews(20);
+    if (coin) {
+      initialItems = await fetchNewsForCurrencies([coin.toUpperCase()], 20);
+    } else {
+      initialItems = await fetchNews(20);
+    }
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Could not load news";
   }
+
+  const supportedCoins = listCoins().map((c) => c.symbol);
 
   return (
     <>
@@ -33,7 +45,11 @@ export default async function NewsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20 }}>
           <div>
             <h1 className="h-section" style={{ fontSize: "clamp(32px, 4vw, 44px)" }}>
-              Crypto News <span style={{ color: "var(--muted)", fontWeight: 700 }}>aggregated & filtered</span>
+              Crypto News {coin ? (
+                <span style={{ color: "var(--accent)", fontWeight: 700 }}>for {coin.toUpperCase()}</span>
+              ) : (
+                <span style={{ color: "var(--muted)", fontWeight: 700 }}>aggregated & filtered</span>
+              )}
             </h1>
           </div>
           <div style={{ display: "flex", gap: 24, color: "var(--muted)", fontSize: 13 }}>
@@ -59,7 +75,11 @@ export default async function NewsPage() {
             </div>
           </div>
         ) : (
-          <NewsFeed initialItems={initialItems} limit={20} />
+          <NewsFeed
+            initialItems={initialItems}
+            limit={20}
+            currencies={coin ? [coin.toUpperCase()] : undefined}
+          />
         )}
       </div>
 
@@ -67,11 +87,18 @@ export default async function NewsPage() {
       <section className="section-tight" style={{ paddingTop: 48 }}>
         <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 16 }}>Filter by Coin</h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "DOGE", "LINK", "AVAX", "MATIC"].map((sym) => (
+          <Link
+            href="/news"
+            className={`btn btn-secondary btn-sm ${!coin ? "active" : ""}`}
+            style={{ height: 36, fontSize: 12 }}
+          >
+            All
+          </Link>
+          {supportedCoins.map((sym) => (
             <Link
               key={sym}
               href={`/news?coin=${sym.toLowerCase()}`}
-              className="btn btn-secondary btn-sm"
+              className={`btn btn-secondary btn-sm ${coin === sym.toLowerCase() ? "active" : ""}`}
               style={{ height: 36, fontSize: 12 }}
             >
               {sym}

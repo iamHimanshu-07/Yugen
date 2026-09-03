@@ -129,10 +129,17 @@ async function fetchRssFeed(url: string, source: string, domain: string): Promis
  * prerendering in parallel + the RSS feed endpoint) share one upstream
  * request instead of fanning out.
  */
-export async function fetchCryptoPanicNews(limit = 20): Promise<NewsItem[]> {
-  const url = `${CRYPTOPANIC_BASE}/posts/?public=true&filter=hot`;
+export async function fetchCryptoPanicNews(limit = 20, currencies?: string[]): Promise<NewsItem[]> {
+  let url = `${CRYPTOPANIC_BASE}/posts/?public=true&filter=hot`;
+  if (currencies && currencies.length > 0) {
+    url += `&currencies=${currencies.join(",")}`;
+  }
 
-  const items = await singleFlight(Caches.news, NEWS_KEY, async () => {
+  const cacheKey = currencies?.length
+    ? `${NEWS_KEY}:${hashString(currencies.sort().join(","))}`
+    : NEWS_KEY;
+
+  const items = await singleFlight(Caches.news, cacheKey, async () => {
     try {
       const data = await withRateLimit("cryptopanic", async () => {
         const res = await fetch(url, {
@@ -168,8 +175,10 @@ export async function fetchCryptoPanicNews(limit = 20): Promise<NewsItem[]> {
  * Fallback: aggregate multiple RSS feeds.
  * Used when CryptoPanic is unavailable or rate limited.
  */
-export async function fetchRssFallback(limit = 20): Promise<NewsItem[]> {
-  const cacheKey = `${RSS_KEY_PREFIX}all`;
+export async function fetchRssFallback(limit = 20, currencies?: string[]): Promise<NewsItem[]> {
+  const cacheKey = currencies?.length
+    ? `${RSS_KEY_PREFIX}all:${hashString(currencies.sort().join(","))}`
+    : `${RSS_KEY_PREFIX}all`;
 
   const sorted = await singleFlight(Caches.news, cacheKey, async () => {
     const allItems: NewsItem[] = [];
@@ -177,7 +186,18 @@ export async function fetchRssFallback(limit = 20): Promise<NewsItem[]> {
       RSS_FEEDS.map((feed) => fetchRssFeed(feed.url, feed.name, feed.domain)),
     );
     for (const items of results) allItems.push(...items);
-    return allItems
+
+    let filtered = allItems;
+    if (currencies && currencies.length > 0) {
+      const currencyPatterns = currencies.map(c => c.toUpperCase());
+      filtered = allItems.filter(item =>
+        currencyPatterns.some(symbol =>
+          item.title.toUpperCase().includes(symbol)
+        )
+      );
+    }
+
+    return filtered
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
       .filter((item, idx, arr) =>
         idx === 0 || !arr[idx - 1].title.toLowerCase().includes(item.title.toLowerCase().slice(0, 30)),
@@ -197,11 +217,11 @@ export async function fetchRssFallback(limit = 20): Promise<NewsItem[]> {
  * Main entry: try CryptoPanic, fall back to RSS.
  * Returns up to `limit` news items.
  */
-export async function fetchNews(limit = 20): Promise<NewsItem[]> {
-  console.log("[news] fetchNews called with limit:", limit);
+export async function fetchNews(limit = 20, currencies?: string[]): Promise<NewsItem[]> {
+  console.log("[news] fetchNews called with limit:", limit, "currencies:", currencies);
   try {
     // Try CryptoPanic first (faster, richer data)
-    const cpResult = await tryWithRateLimit("cryptopanic", () => fetchCryptoPanicNews(limit));
+    const cpResult = await tryWithRateLimit("cryptopanic", () => fetchCryptoPanicNews(limit, currencies));
     console.log("[news] CryptoPanic result length:", cpResult?.length ?? 0);
     if (cpResult && cpResult.length > 0) {
       console.log("[news] returning CryptoPanic result");
@@ -210,7 +230,7 @@ export async function fetchNews(limit = 20): Promise<NewsItem[]> {
 
     // Fallback to RSS
     console.log("[news] falling back to RSS");
-    const rssResult = await fetchRssFallback(limit);
+    const rssResult = await fetchRssFallback(limit, currencies);
     console.log("[news] RSS result length:", rssResult.length);
     return rssResult;
   } catch (error) {
@@ -229,12 +249,8 @@ export async function fetchNews(limit = 20): Promise<NewsItem[]> {
  */
 export async function fetchNewsForCurrencies(currencies: string[], limit = 15): Promise<NewsItem[]> {
   try {
-    const allNews = await fetchNews(50);
-    const currencySet = new Set(currencies.map((c) => c.toUpperCase()));
-
-    return allNews
-      .filter((item) => item.currencies?.some((c) => currencySet.has(c.toUpperCase())))
-      .slice(0, limit);
+    // Fetch news specifically for these currencies
+    return await fetchNews(limit, currencies);
   } catch (error) {
     if (isLocalDev()) {
       console.warn(`[news] fetchNewsForCurrencies failed, using mock:`, error instanceof Error ? error.message : String(error));
