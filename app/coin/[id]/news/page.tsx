@@ -88,14 +88,13 @@ export default async function NewsPage({
               Filtered to {coin.symbol} · CryptoPanic + RSS feeds
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <NewsRefreshButton />
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <Link
               href="/news"
               style={{ color: "var(--muted)", fontSize: 13, textDecoration: "none" }}
             >
               All news →
-            </Link>
+            </Link> 
           </div>
         </div>
 

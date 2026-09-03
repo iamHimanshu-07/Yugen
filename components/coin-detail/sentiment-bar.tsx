@@ -39,19 +39,6 @@ export function SentimentBar({ sentiment }: { sentiment: RealSentiment }) {
         <span style={{ color: "var(--bear)", fontWeight: 700 }}>{fmtInt(sentiment.bearishVotes)} bearish ▼</span>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
-        <button type="button" className="btn btn-ghost btn-sm" style={{ flex: 1, color: "var(--bull)", borderColor: "rgba(22,199,132,0.45)" }}>
-          ▲ Bullish
-        </button>
-        <button type="button" className="btn btn-ghost btn-sm" style={{ flex: 1, color: "var(--bear)", borderColor: "rgba(234,57,67,0.45)" }}>
-          ▼ Bearish
-        </button>
-      </div>
-      <div style={{ marginTop: 12, textAlign: "center" }}>
-        <a href="#" style={{ color: "var(--muted)", fontSize: 12, textDecoration: "none" }}>
-          See more →
-        </a>
-      </div>
     </div>
   );
 }

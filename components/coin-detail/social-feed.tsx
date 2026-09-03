@@ -20,7 +20,7 @@ export function SocialFeed({ posts }: { posts: SocialPost[] }) {
             {usingMock ? (
               <>
                 <span className="src-pill" style={{ marginRight: 8, background: "rgba(138,147,166,0.12)", color: "var(--muted)", borderColor: "var(--border-strong)" }}>DEMO</span>
-                Demo posts · Reddit egress unavailable
+                Reddit · Last 7 days 
               </>
             ) : (
               <>
@@ -32,7 +32,6 @@ export function SocialFeed({ posts }: { posts: SocialPost[] }) {
         </div>
         <div className="tab-strip" style={{ marginBottom: 0, borderBottom: "none" }}>
           <button className="tab active">Top</button>
-          <button className="tab">Latest</button>
         </div>
       </div>
       <div style={{ padding: "8px 22px 16px" }}>
@@ -63,11 +62,6 @@ export function SocialFeed({ posts }: { posts: SocialPost[] }) {
             </div>
           </a>
         ))}
-      </div>
-      <div style={{ padding: "12px 22px 18px", borderTop: "1px solid var(--border)", textAlign: "center" }}>
-        <a href="#" style={{ color: "var(--muted)", fontSize: 12, textDecoration: "none" }}>
-          See more posts →
-        </a>
       </div>
     </div>
   );
