@@ -109,3 +109,9 @@ MIT — see [`LICENSE`](./LICENSE).
 - Data: [CoinGecko](https://www.coingecko.com), [Reddit](https://www.reddit.com), [Binance](https://www.binance.com), [DexScreener](https://dexscreener.com)
 - Resources: [CryptoPanic](https://cryptopanic.com/), [DefiLlama](https://defillama.com/)
 - Charting: [Apache ECharts](https://echarts.apache.org/)
+
+---
+
+## Credits
+
+Built by [Himanshu Singh Yadav](https://github.com/iamHimanshu-07).
