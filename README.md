@@ -92,6 +92,9 @@ yugen/
 ## 🚀 Run & Deploy
 
 ```bash
+git clone https://github.com/HimanshuSinghYadav7/Yugen.git
+cd Yugen
+python -m venv .venv && source .venv/bin/activate   # or: .venv\Scripts\activate on Windows
 npm install
 npm run dev    # Local development (http://localhost:3000)
 npm run build  # Static generation of all 21 coin pages
